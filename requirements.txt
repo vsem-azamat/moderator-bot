@@ -1,0 +1,4 @@
+python-dotenv==0.15.0
+config==0.5.0.post0
+aiogram==2.7
+utils==1.0.1
