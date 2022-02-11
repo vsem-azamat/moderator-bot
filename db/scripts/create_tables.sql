@@ -30,10 +30,14 @@ CREATE TABLE IF NOT EXISTS admins(
     state       BOOLEAN DEFAULT 1   --global states
 );
 
---list of chats
+--list of chats and they settings
 CREATE TABLE IF NOT EXISTS chats(
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_tg_chats INTEGER UNIQUE NOT NULL 
+    id_tg_chats INTEGER UNIQUE NOT NULL
+    text        TEXT,
+    time_delete INTEGER DEFAULT 60,     --time for autodelete welcome messages on "seconds"
+    state_text  BOOLEAN DEFAULT 0,          --row for on/off welcome test
+    state_test  BOOLEAN DEFAULT 0,
 );
 
 CREATE TABLE IF NOT EXISTS chat_admins(
@@ -44,18 +48,6 @@ CREATE TABLE IF NOT EXISTS chat_admins(
 
     FOREIGN KEY(id_admin)   REFERENCES admins(id),
     FOREIGN KEY(id_chat)    REFERENCES chats(id_tg_chats)
-);
-
---welcome messages and "bot-test"
-CREATE TABLE IF NOT EXISTS welcome_test(
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    id_chat     INTEGER NOT NULL,
-    text        TEXT,
-    time_autodelete INTEGER DEFAULT 60,     --time for autodelete welcome messages on "seconds"
-    state_text  BOOLEAN DEFAULT 0,          --row for on/off welcome test
-    state_test  BOOLEAN DEFAULT 0,
-
-    FOREIGN KEY(id_chat) REFERENCES chats(id)
 );
 
 
