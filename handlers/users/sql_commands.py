@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher.filters import Command
 
-from db.sq_lite import cursor, conn
+# from db.sql_aclhemy import db
 from filters import SuperAdmins
 from loader import dp, bot
 
@@ -10,9 +10,8 @@ from loader import dp, bot
 async def edit(message: types.Message):
     try:
         sql_command = message.text.partition(" ")[2]
-        cursor.execute(sql_command)
-        catalog = cursor.fetchall()
-        conn.commit()
+        db.engine.execute(sql_command)
+        
         if len(catalog) is not None:
             print(1)
             pass
