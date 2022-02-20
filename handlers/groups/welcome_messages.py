@@ -13,28 +13,22 @@ from defs import gen_button
 # WELCOME MESSAGE
 @dp.message_handler(IsGroup(), content_types=types.ContentType.NEW_CHAT_MEMBERS)
 async def new_member(message: types.Message):
-
+    user_info = db.check_user(message.from_user.id)
     # if user in black list
-    if db.black_list(message.from_user.id) is None: 
+    if user_info.get('black_list', False): 
         await bot.kick_chat_member(message.chat.id, message.from_user.id)
         await message.delete()
     
     else:
-        welc_dates = db.welcome_message(message.chat.id)
-        db.new_chat_member(id_tg, welc_dates['state_func']) # add user if he is new
+        welc_info = db.welcome_message(message.chat.id)
+        db.add_new_user(message.from_user.id, welc_info['state_func'])
 
-        
         # welcome message is Activate
-        if welc_dates['state_func'] is True: 
-            state_test = welc_dates['state_test']
-            state_verify = db.check_verify(id_tg)
+        if welc_info['state_func'] is True: 
             
             # only welcome text
-            if state_test is False or state_verify:
-                
-                message_welc = await message.reply(welc_dates['text'])
-            
-                await bot.send_message(message.chat.id, 
+            if welc_info['state_test'] is False or user_info['verify']:
+                welcome = await bot.send_message(message.chat.id, 
                     f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a>", 
                     parse_mode="HTML")
 

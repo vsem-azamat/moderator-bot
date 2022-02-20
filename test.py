@@ -1,8 +1,4 @@
-q = None
+# f = open('texts/welcome.txt', encoding='utf-8', mode='w')
 
+# q = f.write('1')
 
-if q is None:
-    print(1)
-
-elif q == False:
-    print(2)

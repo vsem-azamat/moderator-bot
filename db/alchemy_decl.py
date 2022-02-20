@@ -26,11 +26,12 @@ class Chats(Base):
     __tablename__ = 'chats'
 
     id = Column(Integer, primary_key=True)
-    id_tg_chats = Column(Integer, nullable=False)
+    id_tg_chat = Column(Integer, nullable=False)
     text = Column(Text)
     time_delete = Column(Integer, default=60)       # time for autodelete welcome message
-    state_func = Column(Boolean, default=False)     # state of on/off welcome MESSAGE
-    state_test = Column(Boolean, default=False)     # state of on/off welcome TEST
+    state_text = Column(Boolean, default=False)     # state of on/off welcome MESSAGE
+    state_func = Column(Boolean, default=False)     # state of on/off welcome TEST
+    only_db_admins = Column(Boolean, default=False)
 
 class Chat_Admins(Base):
     __tablename__ = 'chat_admins'
@@ -71,12 +72,13 @@ class Users(Base):
     verify = Column(Boolean, default=True)
     q_respect = Column(Integer, default=0)
     q_wanr = Column(Integer, default=0)
+    black_list = Column(Boolean, default=False)
 
 
-class Black_List(Base):
-    __tablename__ = 'black_list'
+# class Black_List(Base):
+#     __tablename__ = 'black_list'
 
-    id = Column(Integer, primary_key=True)
-    id_tg = Column(Integer, nullable=False)
+#     id = Column(Integer, primary_key=True)
+#     id_user = Column(Integer, nullable=False)
     
 
