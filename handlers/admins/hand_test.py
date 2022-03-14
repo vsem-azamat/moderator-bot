@@ -13,5 +13,10 @@ import defs
 
 @dp.message_handler(Command('test', prefixes='!/'), SuperAdmins())
 async def test(message: types.Message):
-    test = await message.reply('test')
-    print(test)
+    await message.reply('test')
+
+
+@dp.message_handler(Command('json'))
+async def json(message: types.Message):
+    await message.reply(message)
+    

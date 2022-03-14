@@ -29,8 +29,8 @@ class Chats(Base):
     id_tg_chat = Column(Integer, nullable=False)
     text = Column(Text)
     time_delete = Column(Integer, default=60)       # time for autodelete welcome message
-    state_text = Column(Boolean, default=False)     # state of on/off welcome MESSAGE
-    state_func = Column(Boolean, default=False)     # state of on/off welcome TEST
+    state_func = Column(Boolean, default=False)     # state of on/off welcome MESSAGE
+    state_test = Column(Boolean, default=False)     # state of on/off welcome TEST
     only_db_admins = Column(Boolean, default=False)
 
 class Chat_Admins(Base):

@@ -74,13 +74,10 @@ async def not_bot(callback: types.CallbackQuery):
     await callback.answer('Thanks! Welcome to the club!')
     db.change_verify(callback.from_user.id, update=True)
 
-    
-
 
 # ACTIVATE WELCOME
-@dp.message_handler(IsGroup(), Command("welcome", prefixes="!/"), AdminFilter())
+@dp.message_handler(Command("welcome", prefixes="!/"), IsGroup(), AdminFilter())
 async def welcome_change(message: types.Message):
-    welcome_text = message.text.partition(" ")[2]
+    param = message.text.partition(" ")[2]
+    await message.reply(db.welcome_command(message.chat.id, param))
     
-    await message.reply(welcome_setting(message.chat.id, welcome_text))
-
