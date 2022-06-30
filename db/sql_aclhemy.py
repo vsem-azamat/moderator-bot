@@ -157,16 +157,23 @@ class SqlAlchemy:
         self.s.commit()
 
     def check_chat(self, id_tg_chat: int):
+        """
+        Add the chat to the DB if it doesn't exist
+        """
         q = self.s.query(Chats.id).filter(Chats.id_tg_chat == id_tg_chat).first()
         if q is None:
             chat = Chats(id_tg_chat=id_tg_chat)
             self.s.add(chat)
             self.s.commit()
 
-        # return q[0] if isinstance(q,sqlalchemy.engine.row.Row) else False
-
     def check_gl_admins(self, id_tg: int):
         return True if self.s.query(Admins).filter(Admins.id_tg == id_tg).first() else False
+
+    def check_chat_db_admins_state(self, id_tg, id_chat):
+        self.check_chat(id_chat)
+        chat_state = self.s.query(Chats.db_admins).filter(Chats.id_tg_chat == id_chat).first()
+        admin_state = self.s.query(Admins.state).filter(Admins.id_tg == id_tg).first()
+        return admin_state, chat_state
 
     def settings_gl_admins(self, id_tg: int, message: str) -> str:
         admin_state = db.check_gl_admins(id_tg)
