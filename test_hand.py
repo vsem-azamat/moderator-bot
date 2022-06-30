@@ -1,10 +1,9 @@
 from db.alchemy_decl import *
 from db.sql_aclhemy import db
 from sqlalchemy import select
+import re
 
-s = "SELECT * FROM chats;"
-q = db.execute(s)
+db.command_update_state('Test1', False)
 
-t = ''
 
-print(t)
+print(1 == True)

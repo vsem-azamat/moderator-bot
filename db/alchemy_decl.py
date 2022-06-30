@@ -6,14 +6,6 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
-class Total_Admins(Base):
-    __tablename__ = 'total_admins'
-
-    id = Column(Integer, primary_key=True)
-    id_tg = Column(Integer, nullable=False)
-    state = Column(Boolean, default=True)
-    
-
 class Admins(Base):
     __tablename__ = 'admins'
 
@@ -31,18 +23,7 @@ class Chats(Base):
     time_delete = Column(Integer, default=60)       # time for autodelete welcome message
     state_func = Column(Boolean, default=False)     # state of on/off welcome MESSAGE
     state_test = Column(Boolean, default=False)     # state of on/off welcome TEST
-    only_db_admins = Column(Boolean, default=False)
-
-class Chat_Admins(Base):
-    __tablename__ = 'chat_admins'
-
-    id = Column(Integer, primary_key=True)
-    id_chat = Column(Integer, ForeignKey('chats.id'))
-    id_admins = Column(Integer, ForeignKey('admins.id'))
-    state = Column(Boolean, default=True)
-    
-    chats = relationship('Chats')
-    admins = relationship('Admins')
+    db_admins = Column(Integer, default=True)
 
 
 class Commands(Base):
@@ -50,18 +31,7 @@ class Commands(Base):
 
     id = Column(Integer, primary_key=True)
     command = Column(Text, unique=True)
-
-
-class Command_States(Base):
-    __tablename__ = 'command_states'
-
-    id = Column(Integer, primary_key=True)
-    id_command = Column(Integer, ForeignKey('commands.id'))
-    id_chat = Column(Integer, ForeignKey('chats.id'))
-    state =Column(Boolean, default=True)
-
-    commands = relationship('Commands')
-    chats = relationship('Chats')
+    state = Column(Boolean, default=True)
 
 
 class Users(Base):
@@ -71,14 +41,5 @@ class Users(Base):
     id_tg = Column(Integer, nullable=False)
     verify = Column(Boolean, default=True)
     q_respect = Column(Integer, default=0)
-    q_wanr = Column(Integer, default=0)
+    q_warn = Column(Integer, default=0)
     black_list = Column(Boolean, default=False)
-
-
-# class Black_List(Base):
-#     __tablename__ = 'black_list'
-
-#     id = Column(Integer, primary_key=True)
-#     id_user = Column(Integer, nullable=False)
-    
-

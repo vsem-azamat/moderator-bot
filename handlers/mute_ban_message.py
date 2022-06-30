@@ -54,7 +54,7 @@ async def unmute_member(message: types.Message):
         can_send_other_messages=True
     )
     try:
-        await message.chat.restrict(user_id=member_id, permissions=ReadOnlyPremissions, until_date=0)
+        await message.chat.restrict(user_id=message.from_user.id, permissions=ReadOnlyPremissions, until_date=0)
         await message.reply(f"Пользователь {get_mention(message)} размучен")
     except BadRequest:
         await message.answer("У меня не получилось это сделать")
