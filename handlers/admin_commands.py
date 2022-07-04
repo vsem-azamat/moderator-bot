@@ -43,3 +43,8 @@ async def command_callback(callback: types.CallbackQuery):
 @dp.message_handler(Command("send_db", prefixes="!/"), SuperAdmins())
 async def send_db(message: types.Message):
     await message.reply_document(open('db/moder_bot.db', 'rb'))
+
+
+@dp.message_handler(Command('report', prefixes='!/'), IsGroup())
+async def report(message: types.Message):
+    pass

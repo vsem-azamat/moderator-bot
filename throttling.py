@@ -47,3 +47,7 @@ class ThrottlingMiddleware(BaseMiddleware):
         thr = await dispatcher.check_key(key)
         if thr.exceeded_count == throttled.exceeded_count:
             await message.reply('Разблокирован.')
+
+
+def setup(dp: Dispatcher):
+    dp.middleware.setup(ThrottlingMiddleware())

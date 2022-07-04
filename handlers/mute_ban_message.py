@@ -2,7 +2,7 @@ from defs import get_mention, mute_date_calc
 
 from aiogram import types
 from aiogram.dispatcher.filters import Command
-from aiogram.utils.exceptions import BadRequest
+from aiogram.utils import exceptions
 
 from filters import IsGroup, AdminFilter, SuperAdmins
 from app import dp, bot
@@ -34,11 +34,11 @@ async def mute_member(message: types.Message):
 
     except AttributeError:
         await message.answer("Примените команду к сообщение челока, которого нужно замутить.")
-    #
-    # except exceptions.CantRestrictChatOwner:
-    #     await message.answer("У меня недостаточно прав.")
 
-    except BadRequest as err:
+    except exceptions.CantRestrictChatOwner:
+        await message.answer("У меня недостаточно прав.")
+
+    except exceptions.BadRequest as err:
         await message.answer(f"Что-то пошло не так.\n\n{err}")
 
 
@@ -54,7 +54,7 @@ async def unmute_member(message: types.Message):
         await message.chat.restrict(message.reply_to_message.from_user.id, permissions=ReadOnlyPremissions_OFF,
                                     until_date=0)
         await message.reply(f"Пользователь {get_mention(message.reply_to_message)} размучен")
-    except BadRequest:
+    except exceptions.BadRequest:
         await message.answer("У меня не получилось это сделать")
 
 
@@ -64,7 +64,7 @@ async def ban_member(message: types.Message):
     try:
         await message.chat.kick(user_id=message.reply_to_message.from_user.id)
         await message.reply(f"Пользователь {get_mention(message.reply_to_message)} забанен")
-    except BadRequest:
+    except exceptions.BadRequest:
         await message.answer("У меня не получилось это сделать")
 
 
@@ -74,7 +74,7 @@ async def ban_member(message: types.Message):
     try:
         await message.chat.unban(user_id=message.reply_to_message.from_user.id)
         await message.reply(f"Пользователь {get_mention(message.reply_to_message)} разбанен")
-    except BadRequest:
+    except exceptions.BadRequest:
         await message.answer("У меня не получилось это сделать")
 
 
@@ -88,7 +88,7 @@ async def full_ban(message: types.Message):
     for id_chat in db.get_chat_list():
         try:
             await bot.ban_chat_member(id_chat, id_user)
-        except Exception:
+        except:
             pass
     await message.answer(f"{get_mention(message.reply_to_message)} добавлен в черный список.")
     db.change_black_list(message.reply_to_message.from_user.id)
