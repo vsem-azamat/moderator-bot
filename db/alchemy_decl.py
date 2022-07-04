@@ -11,7 +11,7 @@ class Admins(Base):
 
     id = Column(Integer, primary_key=True)
     id_tg = Column(Integer, nullable=False)
-    state = Column(Boolean, default=True)           #global state of admin
+    state = Column(Boolean, default=True)  # global state of admin
 
 
 class Chats(Base):
@@ -20,9 +20,9 @@ class Chats(Base):
     id = Column(Integer, primary_key=True)
     id_tg_chat = Column(Integer, nullable=False)
     text = Column(Text)
-    time_delete = Column(Integer, default=60)       # time for autodelete welcome message
-    state_func = Column(Boolean, default=False)     # state of on/off welcome MESSAGE
-    state_test = Column(Boolean, default=False)     # state of on/off welcome TEST
+    time_delete = Column(Integer, default=60)  # time for autodelete welcome message
+    state_func = Column(Boolean, default=False)  # state of on/off welcome MESSAGE
+    state_test = Column(Boolean, default=False)  # state of on/off welcome TEST
     db_admins = Column(Integer, default=True)
 
 
@@ -43,3 +43,11 @@ class Users(Base):
     q_respect = Column(Integer, default=0)
     q_warn = Column(Integer, default=0)
     black_list = Column(Boolean, default=False)
+
+
+class ChatLinks(Base):
+    __tablename__ = 'chatlinks'
+
+    id = Column(Integer, primary_key=True)
+    text = Column(Text, unique=True)
+    link = Column(Text, unique=True)

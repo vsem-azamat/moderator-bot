@@ -1,4 +1,3 @@
-import re
 from aiogram import types
 from aiogram.dispatcher.filters import Command
 
@@ -22,7 +21,7 @@ async def welcome_change(message: types.Message):
 
 
 # COMMAND SETTINGS
-@dp.message_handler(IsGroup(), Command('list_com', prefixes='!/'), AdminFilter())
+@dp.message_handler(Command('list_com', prefixes='!/'), AdminFilter())
 async def command_list(message: types.Message):
     db.check_chat(message.chat.id)
     inline_b = db.command_list()
@@ -34,9 +33,13 @@ async def command_callback(callback: types.CallbackQuery):
     command = callback.data[7:]
     state = int(callback.data[5:6])
     state_invert = {1: False, 0: True}.get(state)
-    # print(state_invert)
     db.command_update_state(command, state_invert)
 
     inline_b = db.command_list()
     await bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id,
                                         reply_markup=inline_b)
+
+
+@dp.message_handler(Command("send_db", prefixes="!/"), SuperAdmins())
+async def send_db(message: types.Message):
+    await message.reply_document(open('db/moder_bot.db', 'rb'))

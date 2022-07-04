@@ -1,10 +1,7 @@
-from aiogram import types
-
-import sqlalchemy
 from sqlalchemy import create_engine, select, insert, update, delete
 from sqlalchemy.orm import sessionmaker
 
-from .alchemy_decl import Admins, Base, Commands, Users, Chats
+from .alchemy_decl import Admins, Base, Commands, Users, Chats, ChatLinks
 
 from defs import genButton
 
@@ -35,7 +32,7 @@ class SqlAlchemy:
         return -> dict
             keys: black_list, verify
 
-        *return will be empty dict, if user doesnt exist in the DB
+        *return will be empty dict, if user doesn't exist in the DB
         """
         q = self.s.query(Users.black_list, Users.verify).filter(Users.id_tg == id_tg)
         return self.conv_dict(q) if self.check_exists(id_tg) else {}
@@ -50,8 +47,15 @@ class SqlAlchemy:
         """
         Changes to verify status of the User
         """
-        request = update(Users).where(Users.id_tg == id_tg).values(verify=state)
-        self.conn.execute(request)
+        q = update(Users).where(Users.id_tg == id_tg).values(verify=state)
+        self.conn.execute(q)
+
+    def change_black_list(self, id_tg: int, state: bool = True) -> None:
+        """
+        Changes to black_list status of the User
+        """
+        q = update(Users.black_list).where(Users.id_tg == id_tg).values(black_list=state)
+        self.conn.execute(q)
 
     def welcome_test(self, id_tg_chat: int):
         dates = self.s.query(Chats.state_func).filter(Chats.id_tg_chat == id_tg_chat)[0][0]
@@ -82,7 +86,7 @@ class SqlAlchemy:
         Work with table 'Chats'
         message params: 
              _: change state_func
-        {text}: chande welcome text
+        {text}: change welcome text
             -t: change state_test
             -m: change message text
         """
@@ -156,6 +160,12 @@ class SqlAlchemy:
         self.s.execute(request)
         self.s.commit()
 
+    def check_command_state(self, command: str) -> bool:
+        """
+        Checks the "state" status of the Commands
+        """
+        return self.s.query(Commands.state).filter(Commands.command == command).first()[0]
+
     def check_chat(self, id_tg_chat: int):
         """
         Add the chat to the DB if it doesn't exist
@@ -166,10 +176,24 @@ class SqlAlchemy:
             self.s.add(chat)
             self.s.commit()
 
+    def get_chat_list(self):
+        q = self.s.query(Chats.id_tg_chat).all()
+        return [id_chat for id_chat in q]
+
     def check_gl_admins(self, id_tg: int):
         return True if self.s.query(Admins).filter(Admins.id_tg == id_tg).first() else False
 
-    def check_chat_db_admins_state(self, id_tg, id_chat):
+    def check_chat_db_admins_state(self, id_tg: int, id_chat: int):
+        """
+        return -> bools[]:
+        - admin_state
+            .. 1 - Is admin
+            .. 0 - Is not admin
+        - chat_state
+            .. 0 - Only chat admins
+            .. 1 - Chat admins + db admins
+            .. 3 - Only db admins
+        """
         self.check_chat(id_chat)
         chat_state = self.s.query(Chats.db_admins).filter(Chats.id_tg_chat == id_chat).first()
         admin_state = self.s.query(Admins.state).filter(Admins.id_tg == id_tg).first()
@@ -212,6 +236,10 @@ class SqlAlchemy:
 
         except IndexError:
             return "Комманда неккоректно использована :(\n\nПример:\n/admin add {id_tg}\n/admin del {id_tg}"
+
+    def get_chat_list(self):
+        q = self.s.query(ChatLinks.text, ChatLinks.link).all()
+        return genButton.inline_b([text for text, _ in q], [link for _, link in q], row_w=2, url=True)
 
 
 db = SqlAlchemy()

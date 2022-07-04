@@ -19,11 +19,11 @@ class AdminFilter(BoundFilter):
         if message.from_user.id in list_super_admins:
             return True
         else:
-            if admin_state == 0 and member.is_chat_admin():
+            if chat_state == 0 and member.is_chat_admin():
                 return True
-            elif admin_state == 1 and (member.is_chat_admin() or admin_state):
+            elif chat_state == 1 and (member.is_chat_admin() or admin_state):
                 return True
-            elif admin_state == 3:
+            elif chat_state == 3 and admin_state:
                 return True
             else:
                 return False
@@ -49,8 +49,15 @@ class IsGroup(BoundFilter):
         )
 
 
+class Memes(BoundFilter):
+    async def check(self, message: types.Message) -> bool:
+        command = message.text.split()[0][1:]
+        return db.check_command(command)
+
+
 def setup(dp: Dispatcher):
     dp.filters_factory.bind(AdminFilter)
     dp.filters_factory.bind(IsGroup)
     dp.filters_factory.bind(IsPrivate)
     dp.filters_factory.bind(SuperAdmins)
+    dp.filters_factory.bind(Memes)

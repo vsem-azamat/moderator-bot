@@ -1,3 +1,6 @@
-__pycache__/
+.gitignore
 .env
+
+__pycache__/
 db/moder_bot.db
+test_hand.py
