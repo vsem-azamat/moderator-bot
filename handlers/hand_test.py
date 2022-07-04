@@ -5,7 +5,7 @@ from aiogram.utils.markdown import hlink
 from aiogram.types import InputFile
 from aiogram.dispatcher.filters import Command
 
-from loader import dp, bot
+from app import dp, bot
 from filters import SuperAdmins
 from db.sql_aclhemy import db
 
@@ -13,7 +13,6 @@ from db.sql_aclhemy import db
 @dp.message_handler(Command('test', prefixes='!/'), SuperAdmins())
 async def test(message: types.Message):
     command = message.text.split()[0][1:]
-    print(db.check_command_state(command))
     # await message.reply(message.text.split()[0][1:])
     # await message.reply(db.check_command(command))
 

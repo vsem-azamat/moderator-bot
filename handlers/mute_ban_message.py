@@ -5,7 +5,7 @@ from aiogram.dispatcher.filters import Command
 from aiogram.utils.exceptions import BadRequest
 
 from filters import IsGroup, AdminFilter, SuperAdmins
-from loader import dp, bot
+from app import dp, bot
 from db.sql_aclhemy import db
 
 

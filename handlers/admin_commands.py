@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher.filters import Command
 
-from loader import dp, bot
+from app import dp, bot
 from filters import SuperAdmins, IsGroup, AdminFilter
 
 from db.sql_aclhemy import db

@@ -1,4 +1,9 @@
+from aiogram import Bot, Dispatcher, types
 from utils.set_bot_commands import set_default_commands
+from data import config
+
+bot = Bot(token=config.BOT_TOKEN, parse_mode=types.ParseMode.HTML)
+dp = Dispatcher(bot)
 
 
 async def on_startup(dp):
@@ -7,8 +12,6 @@ async def on_startup(dp):
     filters.setup(dp)
     middlewares.setup(dp)
 
-    # from utils.notify_admins import on_startup_notify   #или from .utils import on_startup_notify
-    # await on_startup_notify(dp)
     await set_default_commands(dp)
 
 

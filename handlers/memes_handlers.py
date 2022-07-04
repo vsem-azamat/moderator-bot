@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher.filters import Command
 from filters import Memes
-from loader import dp, bot
+from app import dp, bot
 
 from random import randint
 import datetime

@@ -1,5 +1,6 @@
 .gitignore
 .env
+.idea
 
 __pycache__/
 db/moder_bot.db

@@ -5,7 +5,7 @@ from aiogram.utils import exceptions
 
 from filters import IsGroup
 
-from loader import dp, bot
+from app import dp, bot
 from db.sql_aclhemy import db
 
 from defs import genButton

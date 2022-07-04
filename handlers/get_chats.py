@@ -1,7 +1,7 @@
 from aiogram import types
 from aiogram.dispatcher.filters import Command
 
-from loader import dp
+from app import dp
 from db.sql_aclhemy import db
 
 
