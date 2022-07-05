@@ -10,7 +10,6 @@ async def set_default_commands(dp):
     await dp.bot.set_my_commands([
         types.BotCommand("start", "Информация"),
 
-        types.BotCommand("gay", "Радугометр"),
         types.BotCommand("chats", "Образовательные чаты"),
         types.BotCommand("report", "Пожаловаться!")
     ])

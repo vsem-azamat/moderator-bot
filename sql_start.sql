@@ -14,5 +14,4 @@ VALUES
 INSERT INTO commands (id, command, state)
 VALUES
     (1, 'gay', 1)
-
-
+;
