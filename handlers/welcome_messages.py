@@ -12,7 +12,6 @@ from defs import genButton
 
 
 # WELCOME MESSAGE
-@dp.message_handler(IsGroup(), Command('welcome_test', prefixes='!/'))
 @dp.message_handler(IsGroup(), content_types=types.ContentType.NEW_CHAT_MEMBERS)
 async def new_member(message: types.Message):
     # if user in black list
