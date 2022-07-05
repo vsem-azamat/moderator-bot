@@ -81,7 +81,7 @@ class SqlAlchemy:
             self.s.commit()
         return self.conv_dict(q) if return_ is True else None
 
-    def welcome_command(self, id_tg_chat: int, param: str) -> str:
+    def welcome_command(self, id_tg_chat: int, text: str) -> str:
         """
         Work with table 'Chats'
         message params: 
@@ -91,9 +91,9 @@ class SqlAlchemy:
             -m: change message text
         """
         message = None
-        if len(param.split()) > 1:
-            message = param.partition(" ")[2]
-        param = param.split(" ")[0].strip()
+        if len(text.split()) > 1:
+            message = text.partition(" ")[2]
+        param = text.split(" ")[0].strip()
         welc_info = self.welcome_message(id_tg_chat)
 
         # change state_func
@@ -136,9 +136,9 @@ class SqlAlchemy:
 
         # change message text
         else:
-            request = update(Chats).where(Chats.id_tg_chat == id_tg_chat).values(text=param)
+            request = update(Chats).where(Chats.id_tg_chat == id_tg_chat).values(text=text)
             self.engine.execute(request)
-            return f"<b>Приветствие отредактировано!</b> \n\n{param}"
+            return f"<b>Приветствие отредактировано!</b> \n\n{text}"
 
     def add_new_user(self, id_tg: int, state_func: bool = True):
         """
