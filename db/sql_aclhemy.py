@@ -200,7 +200,10 @@ class SqlAlchemy:
         """
         self.check_chat(id_chat)
         chat_state = self.s.query(Chats.db_admins).filter(Chats.id_tg_chat == id_chat).first()[0]
-        admin_state = self.s.query(Admins.state).filter(Admins.id_tg == id_tg).first()[0]
+        try:
+            admin_state = self.s.query(Admins.state).filter(Admins.id_tg == id_tg).first()
+        except TypeError:
+            admin_state = False
         return admin_state, chat_state
 
     def settings_gl_admins(self, id_tg: int, message: str) -> str:
