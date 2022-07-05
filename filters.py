@@ -53,7 +53,7 @@ class IsGroup(BoundFilter):
 class Memes(BoundFilter):
     async def check(self, message: types.Message) -> bool:
         command = message.text.split()[0][1:]
-        return db.check_command(command)
+        return db.check_command_state(command)
 
 
 def setup(dp: Dispatcher):
