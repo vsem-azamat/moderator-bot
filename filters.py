@@ -3,7 +3,8 @@ from aiogram.dispatcher.filters import BoundFilter
 
 from db.sql_aclhemy import db
 
-list_super_admins = [268388996, 447036451]
+# list_super_admins = [268388996, 447036451]
+list_super_admins = [268388996]
 
 
 class AdminFilter(BoundFilter):

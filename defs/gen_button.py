@@ -12,7 +12,7 @@ class GenButtons:
     def inline_b(cls, l_text: list, l_value: list, row_w: int = 1, **kwargs) -> dict:
         """Generate custom inline button"""
         callback = 'callback_data'
-        if kwargs.pop('url') is True:
+        if kwargs.get('url', False) is True:
             callback = 'url'
         len_list = len(l_text)
         row_q = math.ceil(len_list / row_w)

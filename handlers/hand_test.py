@@ -12,12 +12,11 @@ from db.sql_aclhemy import db
 
 @dp.message_handler(Command('test', prefixes='!/'), SuperAdmins())
 async def test(message: types.Message):
-    command = message.text.split()[0][1:]
-    # await message.reply(message.text.split()[0][1:])
-    # await message.reply(db.check_command(command))
+    text = f"<a href='{message.url}'>LINK</a>"
+    await message.answer(message.url)
 
 
-@dp.message_handler(Command('json'), SuperAdmins)
+@dp.message_handler(Command('json'), SuperAdmins())
 async def json(message: types.Message):
     await message.reply(message)
     
