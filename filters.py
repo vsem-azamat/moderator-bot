@@ -1,3 +1,5 @@
+import datetime
+
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import BoundFilter
 
@@ -56,9 +58,16 @@ class Memes(BoundFilter):
         return db.check_command_state(command)
 
 
+class Unmute(BoundFilter):
+    async def check(self, callback: types.CallbackQuery) -> bool:
+        return callback.data == 'not_bot' or callback.data == str(datetime.datetime.now().date()) and \
+               db.check_verify(callback.from_user.id) is False
+
+
 def setup(dp: Dispatcher):
     dp.filters_factory.bind(AdminFilter)
     dp.filters_factory.bind(IsGroup)
     dp.filters_factory.bind(IsPrivate)
     dp.filters_factory.bind(SuperAdmins)
     dp.filters_factory.bind(Memes)
+    dp.filters_factory.bind(Unmute)

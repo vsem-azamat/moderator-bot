@@ -19,8 +19,8 @@ async def new_admin(message: types.Message):
 # WELCOME COMMANDS
 @dp.message_handler(Command("welcome", prefixes="!/"), IsGroup(), AdminFilter())
 async def welcome_change(message: types.Message):
-    param = message.text.partition(" ")[2]
-    await message.reply(db.welcome_command(message.chat.id, param))
+    text = message.text.partition(" ")[2]
+    await message.reply(db.welcome_command(message.chat.id, text))
 
 
 # COMMAND SETTINGS
@@ -63,7 +63,7 @@ async def report(message: types.Message):
                 rep_user_id = message.reply_to_message.from_user.id
                 rep_chat_id = message.reply_to_message.chat.id
                 b_command = (f"{i} {rep_message_id} {rep_user_id} {rep_chat_id}" for i in b_command)
-                buttons = genButton.inline_b(b_text, b_command)
+                buttons = await genButton.inline_b(b_text, b_command)
 
                 await bot.send_message(id_admin, text, reply_markup=buttons)
                 await bot.forward_message(id_admin, message.chat.id, message.reply_to_message.message_id)
@@ -92,8 +92,8 @@ async def report(callback: types.CallbackQuery):
     if command == "ban":
         await bot.ban_chat_member(chat_id, user_id)
     elif command == "mute":
-        inline_b = genButton.inline_b(('Mute: 60 m', 'Mute: 360 m', 'Mute: 1000 m'),
-                                      (f"{i} {chat_id} {user_id}" for i in ('mute_60', 'mute_360', 'mute_1000')))
+        inline_b = await genButton.inline_b(('Mute: 60 m', 'Mute: 360 m', 'Mute: 1000 m'),
+                                            (f"{i} {chat_id} {user_id}" for i in ('mute_60', 'mute_360', 'mute_1000')))
         await bot.edit_message_reply_markup(callback.message.chat.id, callback.message.message_id,
                                             reply_markup=inline_b)
     elif command == "del":
@@ -116,5 +116,5 @@ async def report_mute(callback: types.CallbackQuery):
         can_send_polls=False,
         can_send_other_messages=False
     )
-    until_date = mute_date_calc(f"!mute {time}")['until_date']
+    until_date = await mute_date_calc(f"!mute {time}")['until_date']
     await bot.restrict_chat_member(chat_id, user_id, ReadOnlyPremissions, until_date)

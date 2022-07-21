@@ -2,7 +2,7 @@ import re
 import datetime
 
 
-def mute_date_calc(message: str) -> dict:
+async def mute_date_calc(message: str) -> dict:
     command_parse = re.compile(r"(!mute|/mute) ?(\d+)? ?(\b(m|h|d|w)\b)?")
     parsed = command_parse.match(message)
     time = parsed.group(2)

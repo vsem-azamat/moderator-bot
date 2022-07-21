@@ -107,14 +107,26 @@ class SqlAlchemy:
 
         # change state_test
         elif param == '-b':
-            value = {True: False, False: True}[welc_info['state_test']]
+            value = {1: 0, 0: 1}.get(welc_info['state_test'], 1)
             request = update(Chats).where(Chats.id_tg_chat == id_tg_chat).values(state_test=value)
             self.engine.execute(request)
+
             if welc_info['state_func'] is False:
                 add_text = "\nНо приветствие в этом чате отключено."
             else:
                 add_text = ""
-            return f"Кнопка в приветствии %s!" % {True: 'активирована', False: 'деактивирована'}[value] + add_text
+            return f"<b>Кнопка</b> в приветствии %s!" % {True: 'активирована', False: 'деактивирована'}[value] + add_text
+
+        elif param == '-d':
+            value = {2: 0, 0: 2}.get(welc_info['state_test'], 2)
+            request = update(Chats).where(Chats.id_tg_chat == id_tg_chat).values(state_test=value)
+            self.engine.execute(request)
+
+            if welc_info['state_func'] is False:
+                add_text = "\nНо приветствие в этом чате отключено."
+            else:
+                add_text = ""
+            return f"<b>Кнопки</b> в приветствии %s!" % {2: 'активированы', 0: 'деактивированы'}[value] + add_text
 
         elif param == '-t':
             try:
@@ -134,18 +146,33 @@ class SqlAlchemy:
             except ValueError:
                 return f"Вы некорректно задали параметр."
 
+        elif param == '-s':
+            request = self.s.query(Chats.text, Chats.time_delete, Chats.state_func, Chats.state_test, Chats.db_admins).\
+                filter(Chats.id_tg_chat == id_tg_chat).first()
+            text = f"""
+<b>Текст приветствие:</b>
+{request[0]}
+            
+<b>Время автоудаления:</b> {request[1]}
+<b>Приветствие:</b> {(request[2])}
+<b>Кнопка:</b> {request[3]}
+<b>Глобальные админы:</b> {request[4]}   
+            """
+            return text
+
         # change message text
         else:
             request = update(Chats).where(Chats.id_tg_chat == id_tg_chat).values(text=text)
             self.engine.execute(request)
             return f"<b>Приветствие отредактировано!</b> \n\n{text}"
 
-    def add_new_user(self, id_tg: int, state_func: bool = True):
+    def add_new_user(self, id_tg: int, state_test: bool = True):
         """
         Add the user to the DB if it doesn't exist
         """
+
         if not self.check_exists(id_tg):
-            state = {False: True, True: False}[state_func]
+            state = {False: True}.get(state_test, False)
             user = Users(id_tg=id_tg, verify=state)
             self.s.add(user)
             self.s.commit()
@@ -164,7 +191,7 @@ class SqlAlchemy:
         """
         Checks the "state" status of the Commands
         """
-        return self.s.query(Commands.state).filter(Commands.command == command).first()[0]
+        return True if self.s.query(Commands.state).filter(Commands.command == command).first()[0] is not None else False
 
     def check_chat(self, id_tg_chat: int):
         """

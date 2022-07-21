@@ -1,9 +1,12 @@
 import asyncio
+import datetime
+import random
+
 from aiogram import types
 from aiogram.dispatcher.filters import Command
 from aiogram.utils import exceptions
 
-from filters import IsGroup
+from filters import IsGroup, Unmute
 
 from app import dp, bot
 from db.sql_aclhemy import db
@@ -21,7 +24,7 @@ async def new_member(message: types.Message):
 
     else:
         welcome_info = db.welcome_message(message.chat.id)
-        db.add_new_user(message.from_user.id, welcome_info['state_func'])
+        db.add_new_user(message.from_user.id, welcome_info['state_test'])
         user_info = db.check_user(message.from_user.id)
 
         # welcome message is Activate
@@ -37,8 +40,25 @@ async def new_member(message: types.Message):
                     can_send_other_messages=False
                 )
                 await message.chat.restrict(user_id=message.from_user.id, permissions=ReadOnlyPremissions_ON)
+                if welcome_info['state_test'] == 1:
+                    inline_markup = await genButton.inline_b(['I am not a bot'], [f'not_bot'])
+                elif welcome_info['state_test'] == 2:
+                    date = datetime.datetime.now().date()
+                    random_dates = [date]
 
-                inline_markup = genButton.inline_b(['I am not a bot'], [f'not_bot'])
+                    # to generate list of random dates
+                    start_date = date - datetime.timedelta(days=90)
+                    end_date = date + datetime.timedelta(days=90)
+                    time_between_dates = end_date - start_date
+                    days_between_dates = time_between_dates.days
+                    for _ in range(4):
+                        random_number_of_days = random.randrange(days_between_dates)
+                        random_dates.append(start_date + datetime.timedelta(days=random_number_of_days))
+                    random.shuffle(random_dates)
+                    random_dates = list(map(str, random_dates))
+                    random_dates.insert(0, '❗Today is:')
+                    inline_markup = await genButton.inline_b(random_dates, random_dates, row_w=3)
+
             welcome = await message.reply(welcome_info['text'], parse_mode="HTML", reply_markup=inline_markup)
 
             await asyncio.sleep(welcome_info.get('time_delete', 60))
@@ -58,18 +78,22 @@ async def new_member(message: types.Message):
 
                 # user is a bot
                 else:
-                    unban_message = await bot.unban_chat_member(message.chat.id, message.from_user.id)
-                    await unban_message.delete()
+                    await bot.unban_chat_member(message.chat.id, message.from_user.id)
 
             except exceptions.CantRestrictChatOwner as err:
                 error_message = await message.answer(f'Что то пошло не так: \n\n{err}')
                 await asyncio.sleep(10)
                 await error_message.delete()
 
+# @dp.callback_query_handler()
+# async def test(c: types.CallbackQuery):
+#     print(c)
 
-@dp.callback_query_handler(lambda c: c.data == 'not_bot')
+
+@dp.callback_query_handler(Unmute())
 async def not_bot(callback: types.CallbackQuery):
     await callback.answer('Thanks! Welcome to the club!')
+    print(callback.data)
     db.change_verify(callback.from_user.id, True)
     ReadOnlyPremissions_OFF = types.ChatPermissions(
         can_send_messages=True,

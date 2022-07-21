@@ -9,7 +9,7 @@ class GenButtons:
         return [l_dict[i * row_w:i * row_w + row_w] for i in range(row_q)]
 
     @classmethod
-    def inline_b(cls, l_text: list, l_value: list, row_w: int = 1, **kwargs) -> dict:
+    async def inline_b(cls, l_text: list, l_value: list, row_w: int = 1, **kwargs) -> dict:
         """Generate custom inline button"""
         callback = 'callback_data'
         if kwargs.get('url', False) is True:
@@ -20,7 +20,7 @@ class GenButtons:
         return {"row_wight": row_w, "inline_keyboard": cls.__json(l_dict, row_q, row_w)}
 
     @classmethod
-    def default_b(cls, l_text: list, row_w: int) -> dict:
+    async def default_b(cls, l_text: list, row_w: int) -> dict:
         """Generate custom default button"""
         len_list = len(l_text)
         row_q = math.ceil(len_list / row_w)

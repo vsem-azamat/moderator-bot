@@ -22,7 +22,7 @@ class Chats(Base):
     text = Column(Text)
     time_delete = Column(Integer, default=60)  # time for autodelete welcome message
     state_func = Column(Boolean, default=False)  # state of on/off welcome MESSAGE
-    state_test = Column(Boolean, default=False)  # state of on/off welcome TEST
+    state_test = Column(Integer, default=False)  # state of on/off welcome TEST
     db_admins = Column(Integer, default=True)
 
 

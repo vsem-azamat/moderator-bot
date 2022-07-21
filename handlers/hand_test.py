@@ -8,15 +8,16 @@ from aiogram.dispatcher.filters import Command
 from app import dp, bot
 from filters import SuperAdmins
 from db.sql_aclhemy import db
+import random
+import datetime
+from defs import genButton
 
 
 @dp.message_handler(Command('test', prefixes='!/'), SuperAdmins())
 async def test(message: types.Message):
-    text = f"<a href='{message.url}'>LINK</a>"
-    await message.answer(message.url)
+    pass
 
 
 @dp.message_handler(Command('json'), SuperAdmins())
 async def json(message: types.Message):
     await message.reply(message)
-    
