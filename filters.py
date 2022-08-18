@@ -3,10 +3,8 @@ import datetime
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import BoundFilter
 
+from data.config import SUPER_ADMINS
 from db.sql_aclhemy import db
-
-# list_super_admins = [268388996, 447036451]
-list_super_admins = [268388996]
 
 
 class AdminFilter(BoundFilter):
@@ -18,8 +16,8 @@ class AdminFilter(BoundFilter):
         3 - Only db admins
         """
         member = await message.chat.get_member(message.from_user.id)
-        admin_state, chat_state = db.check_chat_db_admins_state(message.from_user.id, message.chat.id)
-        if message.from_user.id in list_super_admins:
+        admin_state, chat_state = await db.check_chat_db_admins_state(message.from_user.id, message.chat.id)
+        if message.from_user.id in SUPER_ADMINS:
             return True
         else:
             if chat_state == 0 and member.is_chat_admin():
@@ -34,7 +32,7 @@ class AdminFilter(BoundFilter):
 
 class SuperAdmins(BoundFilter):
     async def check(self, message: types.Message) -> bool:
-        return message.from_user.id in list_super_admins
+        return message.from_user.id in SUPER_ADMINS
 
 
 class IsPrivate(BoundFilter):
@@ -55,13 +53,16 @@ class IsGroup(BoundFilter):
 class Memes(BoundFilter):
     async def check(self, message: types.Message) -> bool:
         command = message.text.split()[0][1:]
-        return db.check_command_state(command)
+        return await db.check_command_state(command)
+
+    async def command(self, command: str) -> str:
+        return await db.get_command_state(command)
 
 
 class Unmute(BoundFilter):
     async def check(self, callback: types.CallbackQuery) -> bool:
         return callback.data == 'not_bot' or callback.data == str(datetime.datetime.now().date()) and \
-               db.check_verify(callback.from_user.id) is False
+               await db.check_verify(callback.from_user.id) is False
 
 
 def setup(dp: Dispatcher):

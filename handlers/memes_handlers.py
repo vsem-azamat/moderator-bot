@@ -7,6 +7,8 @@ from random import randint
 import datetime
 
 
+list_commands = ["/meme"]
+
 @dp.message_handler(Command("gay", prefixes="!/"), Memes())
 async def gay_detektor(message: types.Message):
     pr = randint(0, 100)

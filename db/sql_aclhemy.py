@@ -15,19 +15,19 @@ class SqlAlchemy:
 
         self.conn = self.engine.connect()
 
-    def conv_dict(self, query) -> dict:
+    async def conv_dict(self, query) -> dict:
         """
         Converts the query result to a dict
         """
         return [dict(i) for i in query][0]
 
-    def check_exists(self, id_tg):
+    async def check_exists(self, id_tg):
         return True if self.s.query(Users).filter(Users.id_tg == id_tg).first() else False
 
     def execute(self, sql):
         return self.conn.execute(sql)
 
-    def check_user(self, id_tg: int) -> dict:
+    async def check_user(self, id_tg: int) -> dict:
         """
         return -> dict
             keys: black_list, verify
@@ -37,31 +37,27 @@ class SqlAlchemy:
         q = self.s.query(Users.black_list, Users.verify).filter(Users.id_tg == id_tg)
         return self.conv_dict(q) if self.check_exists(id_tg) else {}
 
-    def check_verify(self, id_tg: int) -> bool:
+    async def check_verify(self, id_tg: int) -> bool:
         """
         Checks the "verify" status of the User
         """
         return self.s.query(Users.verify).filter(Users.id_tg == id_tg).first()[0]
 
-    def change_verify(self, id_tg: int, state: bool) -> None:
+    async def change_verify(self, id_tg: int, state: bool) -> None:
         """
         Changes to verify status of the User
         """
         q = update(Users).where(Users.id_tg == id_tg).values(verify=state)
         self.conn.execute(q)
 
-    def change_black_list(self, id_tg: int, state: bool = True) -> None:
+    async def change_black_list(self, id_tg: int, state: bool = True) -> None:
         """
         Changes to black_list status of the User
         """
         q = update(Users.black_list).where(Users.id_tg == id_tg).values(black_list=state)
         self.conn.execute(q)
 
-    def welcome_test(self, id_tg_chat: int):
-        dates = self.s.query(Chats.state_func).filter(Chats.id_tg_chat == id_tg_chat)[0][0]
-        return self.conv_dict(dates)
-
-    def welcome_message(self, id_tg_chat: int, return_: bool = True):
+    async def welcome_message(self, id_tg_chat: int, return_: bool = True):
         """
         return -> dict:
         {'text':          Welcome text}
@@ -79,9 +75,9 @@ class SqlAlchemy:
             welcome = Chats(id_tg_chat=id_tg_chat, text=f)
             self.s.add(welcome)
             self.s.commit()
-        return self.conv_dict(q) if return_ is True else None
+        return await self.conv_dict(q) if return_ is True else None
 
-    def welcome_command(self, id_tg_chat: int, text: str) -> str:
+    async def welcome_command(self, id_tg_chat: int, text: str) -> str:
         """
         Work with table 'Chats'
         message params: 
@@ -94,11 +90,10 @@ class SqlAlchemy:
         if len(text.split()) > 1:
             message = text.partition(" ")[2]
         param = text.split(" ")[0].strip()
-        welc_info = self.welcome_message(id_tg_chat)
+        welc_info = await self.welcome_message(id_tg_chat)
 
         # change state_func
         if param.lower() in ["", "on", "off"]:
-            print(param)
             value = {'on': True, 'off': False}.get(param.lower(), {True: False, False: True}[welc_info['state_func']])
             request = update(Chats).where(Chats.id_tg_chat == id_tg_chat).values(state_func=value)
             self.engine.execute(request)
@@ -166,34 +161,34 @@ class SqlAlchemy:
             self.engine.execute(request)
             return f"<b>Приветствие отредактировано!</b> \n\n{text}"
 
-    def add_new_user(self, id_tg: int, state_test: bool = True):
+    async def add_new_user(self, id_tg: int, state_test: bool = True):
         """
         Add the user to the DB if it doesn't exist
         """
 
-        if not self.check_exists(id_tg):
+        if not await self.check_exists(id_tg):
             state = {False: True}.get(state_test, False)
             user = Users(id_tg=id_tg, verify=state)
             self.s.add(user)
             self.s.commit()
 
-    def command_list(self):
+    async def command_list(self):
         q = self.s.query(Commands.command, Commands.state).all()
         l_commands_states = [f'{name}: ' + {1: '✅', 0: '❌'}.get(state) for name, state in q]
         return genButton.inline_b(l_commands_states, [f"comm_{int(state)}_{name}" for name, state in q])
 
-    def command_update_state(self, command: str, state: bool) -> None:
+    async def command_update_state(self, command: str, state: bool) -> None:
         request = update(Commands).where(Commands.command == command).values(state=state)
         self.s.execute(request)
         self.s.commit()
 
-    def check_command_state(self, command: str) -> bool:
+    async def check_command_state(self, command: str) -> bool:
         """
         Checks the "state" status of the Commands
         """
         return True if self.s.query(Commands.state).filter(Commands.command == command).first()[0] is not None else False
 
-    def check_chat(self, id_tg_chat: int):
+    async def check_chat(self, id_tg_chat: int):
         """
         Add the chat to the DB if it doesn't exist
         """
@@ -203,18 +198,14 @@ class SqlAlchemy:
             self.s.add(chat)
             self.s.commit()
 
-    def get_chat_list(self):
-        q = self.s.query(Chats.id_tg_chat).all()
-        return [id_chat for id_chat in q]
-
-    def check_gl_admins(self, id_tg: int):
+    async def check_gl_admins(self, id_tg: int):
         return True if self.s.query(Admins).filter(Admins.id_tg == id_tg).first() else False
 
-    def get_gl_admins(self):
+    async def get_gl_admins(self):
         q = self.s.query(Admins.id_tg).all()
         return [id_admin for id_admin in q]
 
-    def check_chat_db_admins_state(self, id_tg: int, id_chat: int):
+    async def check_chat_db_admins_state(self, id_tg: int, id_chat: int):
         """
         return -> bools[]:
         - admin_state
@@ -225,7 +216,7 @@ class SqlAlchemy:
             .. 1 - Chat admins + db admins
             .. 3 - Only db admins
         """
-        self.check_chat(id_chat)
+        await self.check_chat(id_chat)
         chat_state = self.s.query(Chats.db_admins).filter(Chats.id_tg_chat == id_chat).first()[0]
         try:
             admin_state = self.s.query(Admins.state).filter(Admins.id_tg == id_tg).first()
@@ -233,8 +224,11 @@ class SqlAlchemy:
             admin_state = False
         return admin_state, chat_state
 
-    def settings_gl_admins(self, id_tg: int, message: str) -> str:
-        admin_state = db.check_gl_admins(id_tg)
+    async def settings_gl_admins(self, id_tg: int, message: str) -> str:
+        """
+        Add or remove the user from the global admins
+        """
+        admin_state = await db.check_gl_admins(id_tg)
         try:
             _, command, admin_id = message.split()
             match command:
@@ -269,11 +263,14 @@ class SqlAlchemy:
                     raise IndexError
 
         except IndexError:
-            return "Комманда неккоректно использована :(\n\nПример:\n/admin add {id_tg}\n/admin del {id_tg}"
+            return "Команда некорректно использована :(\n\nПример:\n/admin add {id_tg}\n/admin del {id_tg}"
 
-    def get_chat_list(self):
+    async def get_chat_links(self):
         q = self.s.query(ChatLinks.text, ChatLinks.link).all()
-        return genButton.inline_b([text for text, _ in q], [link for _, link in q], row_w=2, url=True)
+        return await genButton.inline_b([text for text, _ in q], [link for _, link in q], row_w=2, url=True)
 
+    async def get_chat_list(self):
+        q = self.s.query(Chats.id_tg_chat).all()
+        return [chat_id for chat_id in q]
 
 db = SqlAlchemy()

@@ -1,4 +1,5 @@
 import math
+from typing import Union
 
 
 class GenButtons:
@@ -9,10 +10,10 @@ class GenButtons:
         return [l_dict[i * row_w:i * row_w + row_w] for i in range(row_q)]
 
     @classmethod
-    async def inline_b(cls, l_text: list, l_value: list, row_w: int = 1, **kwargs) -> dict:
+    async def inline_b(cls, l_text: list, l_value: list, row_w: int = 1, url: bool = False) -> dict:
         """Generate custom inline button"""
         callback = 'callback_data'
-        if kwargs.get('url', False) is True:
+        if url:
             callback = 'url'
         len_list = len(l_text)
         row_q = math.ceil(len_list / row_w)
@@ -26,6 +27,7 @@ class GenButtons:
         row_q = math.ceil(len_list / row_w)
         l_dict = [{"text": text, } for text in l_text]
         return {"keyboard": cls.__json(l_dict, row_q, row_w), "resize_keyboard": True}
+
 
 
 genButton = GenButtons()

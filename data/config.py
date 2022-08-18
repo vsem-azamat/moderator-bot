@@ -6,6 +6,4 @@ load_dotenv()
 
 BOT_TOKEN = str(os.getenv('TOKEN'))
 
-admins = [
-    268388996
-]
+SUPER_ADMINS = [int(id_admin) for id_admin in os.getenv('ADMINS').split(',')]
