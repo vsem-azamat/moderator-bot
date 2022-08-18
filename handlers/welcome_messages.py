@@ -34,7 +34,7 @@ async def new_member(message: types.Message):
             # user_name_link = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a>"
             inline_markup = None
             # verify test
-            if welcome_info['state_test'] and user_info['verify'] is False:
+            if welcome_info['state_test'] and user_info.get('verify') is False:
                 ReadOnlyPremissions_ON = types.ChatPermissions(
                     can_send_messages=False,
                     can_send_media_messages=False,

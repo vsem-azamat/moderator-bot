@@ -35,7 +35,7 @@ class SqlAlchemy:
         *return will be empty dict, if user doesn't exist in the DB
         """
         q = self.s.query(Users.black_list, Users.verify).filter(Users.id_tg == id_tg)
-        return self.conv_dict(q) if self.check_exists(id_tg) else {}
+        return await self.conv_dict(q) if await self.check_exists(id_tg) else {}
 
     async def check_verify(self, id_tg: int) -> bool:
         """
@@ -165,7 +165,6 @@ class SqlAlchemy:
         """
         Add the user to the DB if it doesn't exist
         """
-
         if not await self.check_exists(id_tg):
             state = {False: True}.get(state_test, False)
             user = Users(id_tg=id_tg, verify=state)

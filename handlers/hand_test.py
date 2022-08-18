@@ -15,12 +15,10 @@ from defs import genButton
 
 @dp.message_handler(Command('test', prefixes='!/'), SuperAdmins())
 async def test(message: types.Message):
-    text = await async_test()
-    await message.answer(text)
+    q = await db.check_user(message.from_user.id)
+    # q = await db.welcome_message(-1001198485843)
+    await message.answer(q)
 
-
-async def async_test():
-    return 'Okey'
 
 @dp.message_handler(Command('json'), SuperAdmins())
 async def json(message: types.Message):
