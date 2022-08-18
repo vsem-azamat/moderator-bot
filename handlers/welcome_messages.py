@@ -19,7 +19,8 @@ from defs import genButton
 async def new_member(message: types.Message):
     # if user in black list
     id_tg = message.new_chat_members[0].id
-    if await db.check_user(id_tg).get('black_list', False):
+    state_user = await db.check_user(id_tg).get('black_list', False)
+    if state_user:
         await bot.kick_chat_member(message.chat.id, id_tg)
         await message.delete()
 
