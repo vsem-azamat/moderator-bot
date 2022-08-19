@@ -26,7 +26,7 @@ async def new_member(message: types.Message):
     else:
         welcome_info = await db.welcome_message(id_tg)
         await db.add_new_user(id_tg, welcome_info['state_test'])
-        user_info = await db.check_user(id_tg)
+        user_info = db.check_user(id_tg)
 
         # welcome message is Activate
         if welcome_info['state_func'] is True:

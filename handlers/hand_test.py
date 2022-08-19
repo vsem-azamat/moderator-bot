@@ -15,7 +15,7 @@ from defs import genButton
 
 @dp.message_handler(Command('test', prefixes='!/'), SuperAdmins())
 async def test(message: types.Message):
-    q = await db.check_user(message.from_user.id)
+    q = db.check_user(message.from_user.id)
     # q = await db.welcome_message(-1001198485843)
     await message.answer(q)
 
