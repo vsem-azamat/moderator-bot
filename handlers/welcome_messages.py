@@ -24,12 +24,12 @@ async def new_member(message: types.Message):
         await message.delete()
 
     else:
-        welcome_info = await db.welcome_message(id_tg)
+        welcome_info = await db.welcome_message(message.chat.id)
         await db.add_new_user(id_tg, welcome_info['state_test'])
         user_info = db.check_user(id_tg)
 
         # welcome message is Activate
-        if welcome_info['state_func'] is True:
+        if welcome_info['state_func']:
             # user_name_link = f"<a href='tg://user?id={message.from_user.id}'>{message.from_user.first_name}</a>"
             inline_markup = None
             # verify test
