@@ -11,7 +11,7 @@ from filters import IsGroup, Unmute
 from app import dp, bot
 from db.sql_aclhemy import db
 
-from defs import genButton
+from defs import *
 
 
 # WELCOME MESSAGE
@@ -19,8 +19,7 @@ from defs import genButton
 async def new_member(message: types.Message):
     # if user in black list
     id_tg = message.new_chat_members[0].id
-    state_user = await db.check_user(id_tg).get('black_list', False)
-    if state_user:
+    if db.check_user(id_tg).get('black_list', False):
         await bot.kick_chat_member(message.chat.id, id_tg)
         await message.delete()
 

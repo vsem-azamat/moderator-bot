@@ -15,19 +15,19 @@ class SqlAlchemy:
 
         self.conn = self.engine.connect()
 
-    async def conv_dict(self, query) -> dict:
+    def conv_dict(self, query) -> dict:
         """
         Converts the query result to a dict
         """
         return [dict(i) for i in query][0]
 
-    async def check_exists(self, id_tg):
+    def check_exists(self, id_tg):
         return True if self.s.query(Users).filter(Users.id_tg == id_tg).first() else False
 
     def execute(self, sql):
         return self.conn.execute(sql)
 
-    async def check_user(self, id_tg: int) -> dict:
+    def check_user(self, id_tg: int) -> dict:
         """
         return -> dict
             keys: black_list, verify
@@ -35,7 +35,7 @@ class SqlAlchemy:
         *return will be empty dict, if user doesn't exist in the DB
         """
         q = self.s.query(Users.black_list, Users.verify).filter(Users.id_tg == id_tg)
-        return await self.conv_dict(q) if await self.check_exists(id_tg) else {}
+        return self.conv_dict(q) if self.check_exists(id_tg) else {}
 
     async def check_verify(self, id_tg: int) -> bool:
         """
@@ -75,7 +75,7 @@ class SqlAlchemy:
             welcome = Chats(id_tg_chat=id_tg_chat, text=f)
             self.s.add(welcome)
             self.s.commit()
-        return await self.conv_dict(q) if return_ is True else None
+        return self.conv_dict(q) if return_ is True else None
 
     async def welcome_command(self, id_tg_chat: int, text: str) -> str:
         """
@@ -165,7 +165,7 @@ class SqlAlchemy:
         """
         Add the user to the DB if it doesn't exist
         """
-        if not await self.check_exists(id_tg):
+        if not self.check_exists(id_tg):
             state = {False: True}.get(state_test, False)
             user = Users(id_tg=id_tg, verify=state)
             self.s.add(user)
