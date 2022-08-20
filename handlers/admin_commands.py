@@ -12,7 +12,7 @@ from data.config import SUPER_ADMINS
 # MUTE and UNMUTE
 @dp.message_handler(IsGroup(), Command("mute", prefixes='!/'), AdminFilter())
 async def mute_member(message: types.Message):
-    mute_date = await mute_date_calc(message.text)
+    mute_date = mute_date_calc(message.text)
 
     ReadOnlyPremissions = types.ChatPermissions(
         can_send_messages=False,
