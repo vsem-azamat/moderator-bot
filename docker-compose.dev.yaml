@@ -1,0 +1,38 @@
+services:
+  bot:
+    build: .
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m bot
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - moderator-bot-db:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - ${ADMINER_PORT:-8080}:8080
+    depends_on:
+      - db
+
+volumes:
+  moderator-bot-db:

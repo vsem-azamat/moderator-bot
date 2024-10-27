@@ -1,4 +1,4 @@
-INSERT INTO chatlinks (text, link)
+INSERT INTO chat_links (text, link)
 VALUES
     ('ČVUT',    't.me/cvut_chat'),
     ('VŠE',     't.me/vse_chat'),
@@ -11,7 +11,3 @@ VALUES
     ('Центральный чат', 't.me/czechopen')
 ;
 
-INSERT INTO commands (id, command, state)
-VALUES
-    (1, 'gay', 1)
-;
