@@ -1,5 +1,5 @@
 # Bot for moderating chats in Telegram
-For moderating my educational chats in Czech Republic on Telegram.
+For moderating educational chats in the Czech Republic on Telegram. The bot is currently in the development stage.🚧
 
 ## Content
 - [Links to get familiar with the bot](#links-to-get-familiar-with-the-bot)
