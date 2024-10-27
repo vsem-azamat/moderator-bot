@@ -65,7 +65,9 @@ async def mute_user(message: types.Message, bot: Bot):
             f"{mention} в муте на {mute_duration.time} {mute_duration.unit}!\n\n"
             f"Дата размута: {mute_duration.formatted_until_date()}"
         )
-        await message.reply(text_mute)
+        await message.reply_to_message.reply(text_mute)
+        await message.delete()
+
     except Exception as err:
         await message.answer(f"Произошла ошибка:\n\n{err}")
         logger.error(f"Error while muting user: {err}")
