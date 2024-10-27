@@ -30,3 +30,5 @@ class ManagedChatsMiddleware(BaseMiddleware):
 
             # If at least no one super admin in chat, then leave chat
             await self.bot.leave_chat(event.chat.id)
+            return
+        return await handler(event, data)
