@@ -1,6 +1,7 @@
 import re
 import asyncio
 import datetime
+from pytz import timezone
 from aiogram import types
 
 
@@ -38,6 +39,7 @@ def calculate_mute_duration(message: str) -> MuteDuration:
         'w': datetime.timedelta(weeks=time)
     }
     timedelta = units.get(unit, datetime.timedelta(minutes=5))
-    until_date = datetime.datetime.now() + timedelta
+    local_tz = timezone('Europe/Prague')
+    until_date = datetime.datetime.now().astimezone(local_tz) + timedelta
 
     return MuteDuration(until_date, time, unit)
