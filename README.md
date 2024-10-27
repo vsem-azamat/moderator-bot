@@ -1,31 +1,75 @@
-# Бот модератор в Телеграмме.
-Создан для модерирования моих образовательных чатов по Чехии в телеграмме. 
+# Bot for moderating chats in Telegram
+For moderating my educational chats in Czech Republic on Telegram.
 
-### Ссылки для ознакомления с ботом
-- Бот: @konnekt_moder_bot
-- Один из чатов с ботом: @cvut_chat
+## Content
+- [Links to get familiar with the bot](#links-to-get-familiar-with-the-bot)
+- [Features](#features)
+- [Setup and Run](#setup-and-run)
+  - [Development](#development)
+  - [Production](#production)
+- [Commands for moderating](#commands-for-moderating)
 
-## Установка
-1) `git clone *link*`
-2) Создайте файл `.env` в главной директории бота, вписав туда `TOKEN=*BOT_TOKEN*`  
 
-## Команды для модерирования
+## Links to get familiar with the bot
+- Bot: @konnekt_moder_bot
+- One of the chats with the bot: @cvut_chat
 
-| Команда                 | Описание                                                                                                                                                                             |
-|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| MAIN                    |                                                                                                                                                                                      |
-| `/mute *int*` | Мутит пользователя в чате на указанное время первым параметром, по умолчанию: 5 минут. Вторым параметром задаются еденицы времени. |
-| `/unmute`               | Снимает мут с пользователя в чате.                                                                                                                                                   |
-| `/ban`                  | Банит пользователя с чата и добавляет в черный список                                                                                                                                |
-| `/unban`                | Убирает пользователя с черного списка                                                                                                                                                |
-| `/fullban`              | Бан пользователя со всех чатов и добавление в черный список.                                                                                                                         |
-| WELCOME                 |                                                                                                                                                                                      |
-| `/welcome`              | Включает приветственное сообщение в чате для новых участников чата.                                                                                                                  |
-| `/welcome -s`           | Показывает текущие настройки приветствия для чата.                                                                                                                                   |
-| `/welcome -b`           | Включает простую кнопку для проверки на бота в приветственном сообщении. Если пользователь уже когда-то прошел тест, повторно проходить не требуется.                                |
-| `/welcome -d`           | Включает кнопки для проверки на бота в приветственном сообщении, где нужно выбрать актуальную дату. Если пользователь уже когда-то прошел тест, повторно проходить не требуется.     |
-| `/welcome *text* `      | Меняет текст приветственного сообщения.                                                                                                                                              |
-| `/welcome -t *int*`     | Меняет время автоудаления приветственного сообщения. Допустимый интервал: 10-900 секунд.                                                                                             |
-| OTHER                   |                                                                                                                                                                                      |
-| `/chats`                | Посылает список образовательных чатов из таблицы `ChatLinks` в `/db/moder_bot.db`                                                                                                    |
-| `/gay`                  | Радугометр                                                                                                                                                                           |
+
+## Features
+
+* ✅ - implemented
+* ❌ - will be implemented
+* 🚧 - in progress
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Moderating | Base commands for moderating the chat (mute, ban, etc.) | ✅ |
+| Welcome message | Sending a welcome message to new chat members | ✅ |
+| Captcha | Checking if the user is a bot | ❌ |
+| Report | Sending a report to the admins | ❌ |
+| ML model | Detecting spam messages | ❌ |
+
+
+## Setup and Run
+1) Set up the environment:
+```bash
+cp .env.example .env
+```
+2) Fill in the `.env` file with your bot token.
+
+### Development
+3) Run the bot in development mode:
+```bash
+docker-compose -f docker-compose.dev.yaml up --build
+```
+
+### Production
+3) Run the bot in production mode:
+```bash
+docker-compose up --build
+```
+
+
+## Commands for moderating
+
+* ✅ - implemented
+* ❌ - will be implemented
+* 🚧 - in progress
+* 👮 - admins
+* 🧑‍🎓 - user 
+
+| Command | Description | Status | For whom |
+|---------|-------------|--------|----------|
+| `/mute *int*` | Mutes a user in the chat for the specified time in minutes. Default: 5 minutes. | ✅ | 👮 |
+| `/unmute` | Unmutes a user in the chat. | ✅ | 👮 |
+| `/ban` | Bans a user from the chat and adds to the blacklist. | ✅ | 👮 |
+| `/unban` | Unbans a user from the blacklist. | ✅ | 👮 |
+| `blacklist` | Shows the list of banned users. | 🚧 | 👮 |
+| `welcome` | Enables a welcome message for new chat members. | ✅ | 👮 |
+| `welcome <text>` | Changes the welcome message. | ✅ | 👮 |
+| `welcome -t <int>` | Changes the time for auto-deleting the welcome message. | 🚧 | 👮 |
+| `welcome -b` | Enables a simple button for checking if the user is a bot in the welcome message. | ❌ |
+| `welcome -c` | Enables a captcha button for checking if the user is a bot in the welcome message. | ❌ |
+| `welcome -s` | Shows the current settings for the welcome message. | ❌ |
+| `/chats` | Sends a list of educational chats from the `ChatLinks` table in the `/db/moder_bot.db` database. | ✅ | 🧑‍🎓 |
+| `report` | Sends a report to the admins | ❌ | 🧑‍🎓 |
