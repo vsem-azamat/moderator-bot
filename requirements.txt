@@ -1,5 +1,5 @@
-python-dotenv==0.20.0
-config==0.5.1
-aiogram==2.21
-utils==1.0.1
-SQLAlchemy~=1.4.39
+aiogram
+python-decouple
+sqlalchemy[asyncio]
+watchgod
+asyncpg
