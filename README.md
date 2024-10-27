@@ -1,5 +1,5 @@
 # Bot for moderating chats in Telegram
-For moderating my educational chats in Czech Republic on Telegram.
+For moderating educational chats in the Czech Republic on Telegram. The bot is currently in the development stage.🚧
 
 ## Content
 - [Links to get familiar with the bot](#links-to-get-familiar-with-the-bot)
@@ -68,8 +68,8 @@ docker-compose up --build
 | `welcome` | Enables a welcome message for new chat members. | ✅ | 👮 |
 | `welcome <text>` | Changes the welcome message. | ✅ | 👮 |
 | `welcome -t <int>` | Changes the time for auto-deleting the welcome message. | 🚧 | 👮 |
-| `welcome -b` | Enables a simple button for checking if the user is a bot in the welcome message. | ❌ |
-| `welcome -c` | Enables a captcha button for checking if the user is a bot in the welcome message. | ❌ |
-| `welcome -s` | Shows the current settings for the welcome message. | ❌ |
+| `welcome -b` | Enables a simple button for checking if the user is a bot in the welcome message. | ❌ | 👮 |
+| `welcome -c` | Enables a captcha button for checking if the user is a bot in the welcome message. | ❌ | 👮 |
+| `welcome -s` | Shows the current settings for the welcome message. | ❌ | 👮 |
 | `/chats` | Sends a list of educational chats from the `ChatLinks` table in the `/db/moder_bot.db` database. | ✅ | 🧑‍🎓 |
 | `report` | Sends a report to the admins | ❌ | 🧑‍🎓 |
