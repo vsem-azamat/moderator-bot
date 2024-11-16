@@ -2,7 +2,7 @@ import asyncio
 from aiogram import Bot
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from logger import logger
+from bot.logger import logger
 from database.repositories import UserRepository, ChatRepository
 
 
