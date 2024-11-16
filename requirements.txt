@@ -4,3 +4,4 @@ sqlalchemy[asyncio]
 watchgod
 asyncpg
 pytz
+black

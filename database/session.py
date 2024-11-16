@@ -9,6 +9,7 @@ SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{cnfg.DB_USER}:{cnfg.DB_PASSWOR
 engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=False)
 sessionmaker = async_sessionmaker(autoflush=True, bind=engine)
 
+
 async def create_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
