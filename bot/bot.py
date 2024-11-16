@@ -6,8 +6,12 @@ from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from config import cnfg
 from bot.logger import logger
 from bot.handlers import router
-from bot.middlewares import DbSessionMiddleware, BlacklistMiddleware, ManagedChatsMiddleware
-from database.database import sessionmaker, create_db, close_db
+from bot.middlewares import (
+    DbSessionMiddleware,
+    BlacklistMiddleware,
+    ManagedChatsMiddleware,
+)
+from database.session import sessionmaker, create_db, close_db
 
 
 async def on_startup(bot: Bot) -> None:
@@ -24,7 +28,7 @@ async def on_shutdown(bot: Bot) -> None:
 
 
 async def get_bot_and_dp() -> tuple[Bot, Dispatcher]:
-    bot = Bot(token=cnfg.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
+    bot = Bot(token=cnfg.BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher()
     return bot, dp
 
