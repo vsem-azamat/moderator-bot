@@ -25,6 +25,7 @@ For moderating educational chats in the Czech Republic on Telegram. The bot is c
 |---------|-------------|--------|
 | Moderating | Base commands for moderating the chat (mute, ban, etc.) | ✅ |
 | Welcome message | Sending a welcome message to new chat members | ✅ |
+| Saving messages history | Saving messages history to the database | ✅ |
 | Captcha | Checking if the user is a bot | ❌ |
 | Report | Sending a report to the admins | ❌ |
 | ML model | Detecting spam messages | ❌ |
