@@ -1,4 +1,5 @@
-from sqlalchemy import Integer, String, Boolean, BigInteger
+import datetime
+from sqlalchemy import Integer, String, Boolean, BigInteger, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -36,3 +37,15 @@ class ChatLink(Base):
     text: Mapped[String] = mapped_column(String, unique=True)
     link: Mapped[String] = mapped_column(String, unique=True)
     priority: Mapped[Integer] = mapped_column(Integer, default=0)
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id: Mapped[Integer] = mapped_column(Integer, primary_key=True)
+    chat_id: Mapped[BigInteger] = mapped_column(BigInteger)
+    user_id: Mapped[BigInteger] = mapped_column(BigInteger)
+    message: Mapped[String] = mapped_column(String, nullable=True)
+    message_info: Mapped[JSON] = mapped_column(JSON)
+    timestamp: Mapped[DateTime] = mapped_column(DateTime, default=datetime.datetime.now)
+    spam: Mapped[Boolean] = mapped_column(Boolean, default=False)
