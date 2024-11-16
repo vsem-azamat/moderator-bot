@@ -3,6 +3,7 @@ from aiogram.filters import Command
 
 from bot.logger import logger
 from bot.utils import other, filters
+from bot.services import moderation
 from database.repositories import UserRepository, ChatRepository
 
 
@@ -166,7 +167,7 @@ async def unban_user(message: types.Message, bot: Bot):
 
 @router.message(
     filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("blacklist", prefix="!/"),
+    Command("black", prefix="!/"),
     filters.AnyAdminFilter(),
 )
 async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
@@ -181,12 +182,11 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
 
     id_user = message.reply_to_message.from_user.id
     try:
-        await user_repo.add_blacklist(id_user)
-        mention = await other.get_mention(message.reply_to_message.from_user)
-        await message.answer(f"{mention} добавлен в черный список.")
         await bot.ban_chat_member(message.chat.id, id_user)
+        mention = await other.get_mention(message.reply_to_message.from_user)
         await message.reply_to_message.delete()
-        # TODO: Add deletion from all chats if applicable
+        await message.answer(f"{mention} добавлен в черный список.")
+        await moderation.add_to_blacklist(user_repo.db, bot, id_user)
     except Exception as err:
         await message.answer(f"Произошла ошибка:\n\n{err}")
         logger.error(f"Error while adding user {id_user} to blacklist: {err}")

@@ -17,7 +17,7 @@ class UserRepository:
         result = await self.db.execute(select(User).filter(User.blocked == True))
         return result.scalars().all()
 
-    async def add_blacklist(self, id_tg: int) -> None:
+    async def add_to_blacklist(self, id_tg: int) -> None:
         await self.db.execute(insert(User).values(id=id_tg, blocked=True))
         await self.db.commit()
 

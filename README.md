@@ -64,7 +64,7 @@ docker-compose up --build
 | `/unmute` | Unmutes a user in the chat. | ✅ | 👮 |
 | `/ban` | Bans a user from the chat and adds to the blacklist. | ✅ | 👮 |
 | `/unban` | Unbans a user from the blacklist. | ✅ | 👮 |
-| `blacklist` | Shows the list of banned users. | 🚧 | 👮 |
+| `black` | Adds a user to the blacklist for all chats. | ✅ | 👮 |
 | `welcome` | Enables a welcome message for new chat members. | ✅ | 👮 |
 | `welcome <text>` | Changes the welcome message. | ✅ | 👮 |
 | `welcome -t <int>` | Changes the time for auto-deleting the welcome message. | 🚧 | 👮 |
