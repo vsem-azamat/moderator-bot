@@ -4,7 +4,7 @@ from aiogram.filters import Command
 from bot.logger import logger
 from bot.utils import other, filters
 from bot.services import moderation
-from database.repositories import UserRepository, ChatRepository
+from database.repositories import UserRepository, ChatRepository, MessageRepository
 
 
 router = Router()
@@ -194,9 +194,28 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
 
 @router.message(
     filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("welcome", prefix="!/"),
+    Command("spam", prefix="!/"),
     filters.AnyAdminFilter(),
 )
+async def label_spam(message: types.Message, message_repo: MessageRepository, bot: Bot):
+    if not message.reply_to_message:
+        await message.answer(reply_required_error(message, "пометить как спам"))
+        return
+
+    await message_repo.label_spam(
+        message.chat.id,
+        message.reply_to_message.message_id,
+    )
+    await bot.delete_message(message.chat.id, message.reply_to_message.message_id)
+
+    user_messages = await message_repo.get_user_messages(message.reply_to_message.from_user.id)
+    for user_message in user_messages:
+        try:
+            await bot.ban_chat_member(message.chat.id, user_message.user_id, revoke_messages=True)
+        except Exception as err:
+            logger.error(f"Error while deleting message: {err}")
+
+
 async def welcome_change(message: types.Message, chat_repo: ChatRepository):
     welcome_message = message.text.partition(" ")[2]
     await chat_repo.update_welcome_message(message.chat.id, welcome_message)

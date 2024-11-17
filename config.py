@@ -15,4 +15,5 @@ class Config:
     def DATABASE_URL(self) -> str:
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@db/{self.DB_NAME}"
 
+
 cnfg = Config()
