@@ -3,6 +3,7 @@ from typing import Callable, Awaitable, Dict, Any
 from aiogram import BaseMiddleware, Bot, types
 from aiogram.types import TelegramObject
 
+from bot.logger import logger
 from database.repositories import UserRepository
 
 
@@ -25,7 +26,7 @@ class BlacklistMiddleware(BaseMiddleware):
                 await self.bot.ban_chat_member(event.chat.id, event.from_user.id)
                 await event.delete()
             except Exception as e:
-                print(f"Failed to ban or delete message for user {event.from_user.id}: {e}")
+                logger.error(f"Failed to ban or delete message for user {event.from_user.id}: {e}")
             return  # Stop further handler processing for blacklisted user
 
         return await handler(event, data)
