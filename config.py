@@ -10,5 +10,9 @@ class Config:
     DB_PASSWORD: str = config("DB_PASSWORD", cast=str)
     DB_NAME: str = config("DB_NAME", cast=str)
 
+    # DATABASE URL
+    @property
+    def DATABASE_URL(self) -> str:
+        return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@db/{self.DB_NAME}"
 
 cnfg = Config()
