@@ -12,13 +12,14 @@ from bot.middlewares import (
     BlacklistMiddleware,
     ManagedChatsMiddleware,
 )
-from database.session import sessionmaker, create_db, close_db
+from database.session import sessionmaker, create_db, close_db, insert_chat_link
 
 
 async def on_startup(bot: Bot) -> None:
     await bot.delete_webhook()
     logger.info("Bot started")
     await create_db()
+    await insert_chat_link()
 
 
 async def on_shutdown(bot: Bot) -> None:
