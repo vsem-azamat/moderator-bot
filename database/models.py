@@ -16,7 +16,7 @@ class Chat(Base):
     __tablename__ = "chats"
 
     id: Mapped[BigInteger] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
-    welcome_message: Mapped[String] = mapped_column(String)
+    welcome_message: Mapped[String] = mapped_column(String, nullable=True)
     time_delete: Mapped[Integer] = mapped_column(Integer, default=60)
     is_welcome_enabled: Mapped[Boolean] = mapped_column(Boolean, default=False)
     is_captcha_enabled: Mapped[Integer] = mapped_column(Integer, default=False)

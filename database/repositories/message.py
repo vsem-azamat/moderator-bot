@@ -30,9 +30,8 @@ class MessageRepository:
         await self.db.commit()
 
     async def label_spam(self, chat_id: int, message_id: int) -> None:
-        await self.db.execute(
-            update(Message).where(and_(Message.chat_id == chat_id, Message.message_id == message_id)).values(is_spam=True)
-        )
+        query = update(Message).where(and_(Message.chat_id == chat_id, Message.message_id == message_id)).values(is_spam=True)
+        await self.db.execute(query)
         await self.db.commit()
 
     async def get_user_messages(self, user_id: int) -> Sequence[Message]:

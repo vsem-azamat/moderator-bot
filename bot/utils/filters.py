@@ -14,7 +14,7 @@ class SuperAdminFilter(BaseFilter):
 class AdminFilter(BaseFilter):
     async def __call__(self, msg: types.Message, db: AsyncSession) -> bool:
         admin_repo = get_admin_repository(db)
-        admins_id = [admin.id for admin in await admin_repo.get_db_admins()]        
+        admins_id = [admin.id for admin in await admin_repo.get_db_admins()]
         return msg.from_user.id in admins_id
 
 
