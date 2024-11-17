@@ -203,13 +203,14 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, bo
         return
 
     spammer_message_id = message.reply_to_message.message_id
+    spammer_chat_id = message.reply_to_message.chat.id
     spammer_user_id = message.reply_to_message.from_user.id
 
     await message_repo.label_spam(
         spammer_message_id,
         spammer_user_id,
     )
-    await bot.delete_message(spammer_user_id, spammer_message_id)
+    await bot.delete_message(spammer_chat_id, spammer_message_id)
     await message.delete()
 
     user_messages = await message_repo.get_user_messages(spammer_user_id)
