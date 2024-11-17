@@ -38,7 +38,7 @@ async def get_bot_and_dp() -> tuple[Bot, Dispatcher]:
 async def main() -> None:
     bot, dp = await get_bot_and_dp()
     dp.update.middleware(DbSessionMiddleware(session_pool=sessionmaker))
-    dp.message.middleware(HistoryMiddleware())
+    dp.update.middleware(HistoryMiddleware())
     dp.message.middleware(BlacklistMiddleware(bot))
     dp.message.middleware(ManagedChatsMiddleware(bot))
     dp.callback_query.middleware(CallbackAnswerMiddleware())
