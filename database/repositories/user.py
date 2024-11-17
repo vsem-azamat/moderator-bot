@@ -13,6 +13,11 @@ class UserRepository:
         result = await self.db.execute(select(User).filter(User.id == id_tg))
         return result.scalars().first()
 
+    async def add_user_if_is_missing(self, id_tg: int) -> None:
+        if not await self.get_user(id_tg):
+            await self.db.execute(insert(User).values(id=id_tg))
+            await self.db.commit()
+
     async def get_blocked_users(self) -> Sequence[User]:
         result = await self.db.execute(select(User).filter(User.blocked == True))
         return result.scalars().all()
