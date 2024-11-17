@@ -2,10 +2,9 @@ from typing import Callable, Awaitable, Dict, Any
 
 from aiogram import BaseMiddleware, Bot, types
 from aiogram.types import TelegramObject
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import cnfg
-from database import crud
+from database.repositories import ChatRepository
 
 
 class ManagedChatsMiddleware(BaseMiddleware):
@@ -14,18 +13,21 @@ class ManagedChatsMiddleware(BaseMiddleware):
         self.bot = bot
 
     async def __call__(
-            self,
-            handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
-            event: TelegramObject,
-            data: Dict[str, Any],
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
     ) -> Any:
-        db: AsyncSession = data["db"]
-        if isinstance(event, types.Message) and event.chat.type in ['group', 'supergroup']:
+        chat_repo: ChatRepository = data["chat_repo"]
+        if isinstance(event, types.Message) and event.chat.type in [
+            "group",
+            "supergroup",
+        ]:
             chat_admins = await self.bot.get_chat_administrators(event.chat.id)
             chat_admins_id = {admin.user.id for admin in chat_admins}
             for super_admin in cnfg.SUPER_ADMINS:
                 if super_admin in chat_admins_id:
-                    await crud.merge_chat(db, event.chat.id)
+                    await chat_repo.add_if_chat_is_missing(event.chat.id)
                     return await handler(event, data)
 
             # If at least no one super admin in chat, then leave chat

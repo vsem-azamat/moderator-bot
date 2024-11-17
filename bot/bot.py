@@ -6,14 +6,20 @@ from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from config import cnfg
 from bot.logger import logger
 from bot.handlers import router
-from bot.middlewares import DbSessionMiddleware, BlacklistMiddleware, ManagedChatsMiddleware
-from database.database import sessionmaker, create_db, close_db
+from bot.middlewares import (
+    HistoryMiddleware,
+    DbSessionMiddleware,
+    BlacklistMiddleware,
+    ManagedChatsMiddleware,
+)
+from database.session import sessionmaker, create_db, close_db, insert_chat_link
 
 
 async def on_startup(bot: Bot) -> None:
     await bot.delete_webhook()
     logger.info("Bot started")
     await create_db()
+    await insert_chat_link()
 
 
 async def on_shutdown(bot: Bot) -> None:
@@ -24,7 +30,7 @@ async def on_shutdown(bot: Bot) -> None:
 
 
 async def get_bot_and_dp() -> tuple[Bot, Dispatcher]:
-    bot = Bot(token=cnfg.BOT_TOKEN, default=DefaultBotProperties(parse_mode='HTML'))
+    bot = Bot(token=cnfg.BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
     dp = Dispatcher()
     return bot, dp
 
@@ -32,6 +38,7 @@ async def get_bot_and_dp() -> tuple[Bot, Dispatcher]:
 async def main() -> None:
     bot, dp = await get_bot_and_dp()
     dp.update.middleware(DbSessionMiddleware(session_pool=sessionmaker))
+    dp.update.middleware(HistoryMiddleware())
     dp.message.middleware(BlacklistMiddleware(bot))
     dp.message.middleware(ManagedChatsMiddleware(bot))
     dp.callback_query.middleware(CallbackAnswerMiddleware())

@@ -29,17 +29,17 @@ def calculate_mute_duration(message: str) -> MuteDuration:
     parsed = command_parse.match(message)
 
     time = int(parsed.group(2) or 5)
-    unit = parsed.group(3) or 'm'
+    unit = parsed.group(3) or "m"
 
     # Define time units and calculate the duration
     units = {
-        'm': datetime.timedelta(minutes=time),
-        'h': datetime.timedelta(hours=time),
-        'd': datetime.timedelta(days=time),
-        'w': datetime.timedelta(weeks=time)
+        "m": datetime.timedelta(minutes=time),
+        "h": datetime.timedelta(hours=time),
+        "d": datetime.timedelta(days=time),
+        "w": datetime.timedelta(weeks=time),
     }
     timedelta = units.get(unit, datetime.timedelta(minutes=5))
-    local_tz = timezone('Europe/Prague')
+    local_tz = timezone("Europe/Prague")
     until_date = datetime.datetime.now().astimezone(local_tz) + timedelta
 
     return MuteDuration(until_date, time, unit)
