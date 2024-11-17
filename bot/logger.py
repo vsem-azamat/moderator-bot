@@ -18,7 +18,7 @@ LOGGING_CONFIG = {
         },
         "detailed": {
             "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s "
-                      "(module: %(module)s, func: %(funcName)s, line: %(lineno)d)",
+            "(module: %(module)s, func: %(funcName)s, line: %(lineno)d)",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
