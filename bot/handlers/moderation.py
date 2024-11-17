@@ -202,17 +202,20 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, bo
         await message.answer(reply_required_error(message, "пометить как спам"))
         return
 
+    spammer_message_id = message.reply_to_message.message_id
+    spammer_user_id = message.reply_to_message.from_user.id
+
     await message_repo.label_spam(
-        message.chat.id,
-        message.reply_to_message.message_id,
+        spammer_message_id,
+        spammer_user_id,
     )
-    await bot.delete_message(message.chat.id, message.reply_to_message.message_id)
+    await bot.delete_message(spammer_user_id, spammer_message_id)
     await message.delete()
 
-    user_messages = await message_repo.get_user_messages(message.reply_to_message.from_user.id)
-    for user_message in user_messages:
+    user_messages = await message_repo.get_user_messages(spammer_user_id)
+    for message_row in user_messages:
         try:
-            await bot.ban_chat_member(message.chat.id, user_message.user_id, revoke_messages=True)
+            await bot.ban_chat_member(message_row.chat_id, message_row.user_id, revoke_messages=True)
         except Exception as err:
             logger.error(f"Error while deleting message: {err}")
 
