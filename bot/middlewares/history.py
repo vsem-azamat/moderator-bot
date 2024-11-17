@@ -4,7 +4,7 @@ from aiogram import BaseMiddleware, types
 from aiogram.types import TelegramObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from logger import logger
+from bot.logger import logger
 from bot.services import history as history_service
 
 
