@@ -1,5 +1,6 @@
 from aiogram import types, Router, Bot
 from aiogram.filters import Command
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.logger import logger
 from bot.utils import other, filters
@@ -197,7 +198,11 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
     Command("spam", prefix="!/"),
     filters.AnyAdminFilter(),
 )
-async def label_spam(message: types.Message, message_repo: MessageRepository, bot: Bot):
+async def label_spam(
+    message: types.Message, 
+    message_repo: MessageRepository,
+    db: AsyncSession,
+    bot: Bot):
     if not message.reply_to_message:
         await message.answer(reply_required_error(message, "пометить как спам"))
         return
@@ -220,6 +225,7 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, bo
         except Exception as err:
             logger.error(f"Error while deleting message: {err}")
 
+    await moderation.add_to_blacklist(db, bot, spammer_user_id)
 
 async def welcome_change(message: types.Message, chat_repo: ChatRepository):
     welcome_message = message.text.partition(" ")[2]
