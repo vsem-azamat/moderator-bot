@@ -9,6 +9,7 @@ from database.repositories import (
     get_user_repository,
     get_chat_link_repository,
     get_admin_repository,
+    get_message_repository,
 )
 
 
@@ -29,4 +30,5 @@ class DbSessionMiddleware(BaseMiddleware):
             data["user_repo"] = get_user_repository(session)
             data["chat_repo"] = get_chat_repository(session)
             data["chat_link_repo"] = get_chat_link_repository(session)
+            data["message_repo"] = get_message_repository(session)
             return await handler(event, data)
