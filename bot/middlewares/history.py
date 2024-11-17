@@ -16,17 +16,21 @@ class HistoryMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         db: AsyncSession = data["db"]
-        if hasattr(event, "from_user") and isinstance(event.from_user, types.User):
-            try:
-                await history_service.save_user(db, event.from_user)
-            except Exception as err:
-                logger.error(f"Error while saving user: {err}")
+        if isinstance(event, types.Update):
+            message = event.message
 
-        if isinstance(event, types.Message):
-            try:
-                event.from_user
-                await history_service.save_message(db, event)
-            except Exception as err:
-                logger.error(f"Error while saving message: {err}")
+            if message is not None:
+                user = message.from_user
+
+                if isinstance(user, types.User):
+                    try:
+                        await history_service.save_user(db, user)
+                    except Exception as err:
+                        logger.error(f"Error while saving user: {err}")
+
+                try:
+                    await history_service.save_message(db, message)
+                except Exception as err:
+                    logger.error(f"Error while saving message: {err}")
 
         return await handler(event, data)
