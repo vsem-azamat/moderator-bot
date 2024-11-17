@@ -15,6 +15,7 @@ class MessageRepository:
         self,
         chat_id: int,
         user_id: int,
+        message_id: int,
         message: str | None,
         message_info: dict,
     ) -> None:
@@ -22,11 +23,15 @@ class MessageRepository:
             insert(Message).values(
                 chat_id=chat_id,
                 user_id=user_id,
+                message_id=message_id,
                 message=message,
                 message_info=message_info,
             )
         )
         await self.db.commit()
+
+
+    # async def 
 
 
 def get_message_repository(db: AsyncSession) -> MessageRepository:

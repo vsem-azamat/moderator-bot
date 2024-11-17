@@ -45,6 +45,7 @@ class Message(Base):
     id: Mapped[Integer] = mapped_column(Integer, primary_key=True)
     chat_id: Mapped[BigInteger] = mapped_column(BigInteger)
     user_id: Mapped[BigInteger] = mapped_column(BigInteger)
+    message_id: Mapped[BigInteger] = mapped_column(BigInteger)
     message: Mapped[String] = mapped_column(String, nullable=True)
     message_info: Mapped[JSON] = mapped_column(JSON)
     timestamp: Mapped[DateTime] = mapped_column(DateTime, default=datetime.datetime.now)
