@@ -1,5 +1,5 @@
 from typing import Sequence
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -23,7 +23,11 @@ class UserRepository:
         return result.scalars().all()
 
     async def add_to_blacklist(self, id_tg: int) -> None:
-        await self.db.execute(insert(User).values(id=id_tg, blocked=True))
+        user = await self.get_user(id_tg)
+        if user:
+            await self.db.execute(update(User).where(User.id == id_tg).values(blocked=True))
+        else:
+            await self.db.execute(insert(User).values(id=id_tg, blocked=True))
         await self.db.commit()
 
 
