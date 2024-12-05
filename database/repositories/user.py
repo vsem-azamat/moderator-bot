@@ -13,10 +13,21 @@ class UserRepository:
         result = await self.db.execute(select(User).filter(User.id == id_tg))
         return result.scalars().first()
 
-    async def add_user_if_is_missing(self, id_tg: int) -> None:
-        if not await self.get_user(id_tg):
-            await self.db.execute(insert(User).values(id=id_tg))
-            await self.db.commit()
+    async def merge_user(
+        self,
+        id_tg: int,
+        username: str | None = None,
+        first_name: str | None = None,
+        last_name: str | None = None,
+    ) -> None:
+        user = User(
+            id=id_tg,
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        await self.db.merge(user)
+        await self.db.commit()
 
     async def get_blocked_users(self) -> Sequence[User]:
         result = await self.db.execute(select(User).filter(User.blocked == True))
