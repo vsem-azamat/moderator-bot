@@ -26,10 +26,9 @@ class ManagedChatsMiddleware(BaseMiddleware):
         ]:
             chat_admins = await bot.get_chat_administrators(event.chat.id)
             chat_admins_id = {admin.user.id for admin in chat_admins}
-            for super_admin in cnfg.SUPER_ADMINS:
-                if super_admin in chat_admins_id:
-                    await history_service.merge_chat(db, event.chat)
-                    return await handler(event, data)
+            if any(super_admin in chat_admins_id for super_admin in cnfg.SUPER_ADMINS):
+                await history_service.merge_chat(db, event.chat)
+                return await handler(event, data)
 
             # If at least no one super admin in chat, then leave chat
             await bot.leave_chat(event.chat.id)
