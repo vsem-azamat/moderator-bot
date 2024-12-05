@@ -5,7 +5,8 @@ from aiogram.types import TelegramObject
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.logger import logger
-from bot.services import history as history_service
+from bot.utils import other
+from bot.services import history as history_service, spam as spam_service
 
 
 class HistoryMiddleware(BaseMiddleware):
@@ -16,21 +17,23 @@ class HistoryMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         db: AsyncSession = data["db"]
-        if isinstance(event, types.Update):
+        if isinstance(event, types.Update) and isinstance(event.message, types.Message):
             message = event.message
+            user = message.from_user
 
-            if message is not None:
-                user = message.from_user
-
-                if isinstance(user, types.User):
-                    try:
-                        await history_service.merge_user(db, user)
-                    except Exception as err:
-                        logger.error(f"Error while saving user: {err}")
-
+            if isinstance(user, types.User):
                 try:
-                    await history_service.save_message(db, message)
+                    await history_service.merge_user(db, user)
                 except Exception as err:
-                    logger.error(f"Error while saving message: {err}")
+                    logger.error(f"Error while saving user: {err}")
+
+            try:
+                await history_service.save_message(db, message)
+            except Exception as err:
+                logger.error(f"Error while saving message: {err}")
+
+            if await spam_service.detect_spam(db, message):
+                answer = await event.message.answer("🚧 Is spam message?🤔")
+                await other.sleep_and_delete(answer, 15)
 
         return await handler(event, data)
