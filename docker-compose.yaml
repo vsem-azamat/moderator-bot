@@ -7,9 +7,13 @@ services:
       - .:/app
     depends_on:
       - db
-    command: python3 -m bot
     environment:
       - PYTHONUNBUFFERED=1
+    command: >
+      bash -c "
+      alembic upgrade head &&
+      python3 -m bot
+      "
 
   db:
     image: postgres

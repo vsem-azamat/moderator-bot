@@ -1,10 +1,11 @@
 from aiogram import types, Router, Bot
 from aiogram.filters import Command
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.logger import logger
-from bot.utils import other, filters
-from bot.services import moderation
-from database.repositories import UserRepository, ChatRepository
+from bot.utils import other
+from bot.services import moderation as moderation_services
+from database.repositories import UserRepository, ChatRepository, MessageRepository
 
 
 router = Router()
@@ -20,11 +21,7 @@ def is_user_check_error() -> str:
     return "Это не пользователь или что-то пошло не так."
 
 
-@router.message(
-    filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("mute", prefix="!/"),
-    filters.AnyAdminFilter(),
-)
+@router.message(Command("mute", prefix="!/"))
 async def mute_user(message: types.Message, bot: Bot):
     # Ensure command is used as a reply
     if not message.reply_to_message:
@@ -69,7 +66,7 @@ async def mute_user(message: types.Message, bot: Bot):
             permissions=read_only_permissions,
             until_date=mute_duration.until_date,
         )
-        mention = await other.get_mention(message.reply_to_message.from_user)
+        mention = await other.get_user_mention(message.reply_to_message.from_user)
         text_mute = (
             f"{mention} в муте на {mute_duration.time} {mute_duration.unit}!\n\n"
             f"Дата размута: {mute_duration.formatted_until_date()}"
@@ -82,11 +79,7 @@ async def mute_user(message: types.Message, bot: Bot):
         logger.error(f"Error while muting user: {err}")
 
 
-@router.message(
-    filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("unmute", prefix="!/"),
-    filters.AnyAdminFilter(),
-)
+@router.message(Command("unmute", prefix="!/"))
 async def unmute_member(message: types.Message):
     if not message.reply_to_message:
         await message.answer(reply_required_error(message, "размутить"))
@@ -109,17 +102,13 @@ async def unmute_member(message: types.Message):
             permissions=default_permissions,
             until_date=0,
         )
-        mention = await other.get_mention(message.reply_to_message.from_user)
+        mention = await other.get_user_mention(message.reply_to_message.from_user)
         await message.reply(f"Пользователь {mention} размучен!")
     except Exception as err:
         await message.answer(f"Произошла ошибка:\n\n{err}")
 
 
-@router.message(
-    filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("ban", prefix="!/"),
-    filters.AnyAdminFilter(),
-)
+@router.message(Command("ban", prefix="!/"))
 async def ban_user(message: types.Message, bot: Bot):
     if not message.reply_to_message:
         await message.answer(reply_required_error(message, "забанить"))
@@ -131,8 +120,8 @@ async def ban_user(message: types.Message, bot: Bot):
 
     try:
         await bot.ban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
-        mention = await other.get_mention(message.reply_to_message.from_user)
-        await message.reply(f"Пользователь {mention} забанен")
+        mention = await other.get_user_mention(message.reply_to_message.from_user)
+        await message.answer(f"Пользователь {mention} забанен")
     except Exception as err:
         error_msg = await message.answer(f"Что-то пошло не так:\n\n{err}")
         await other.sleep_and_delete(error_msg, 10)
@@ -140,11 +129,7 @@ async def ban_user(message: types.Message, bot: Bot):
     await message.delete()
 
 
-@router.message(
-    filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("unban", prefix="!/"),
-    filters.AnyAdminFilter(),
-)
+@router.message(Command("unban", prefix="!/"))
 async def unban_user(message: types.Message, bot: Bot):
     if not message.reply_to_message:
         await message.answer(reply_required_error(message, "разбанить"))
@@ -156,7 +141,7 @@ async def unban_user(message: types.Message, bot: Bot):
 
     try:
         await bot.unban_chat_member(message.chat.id, message.reply_to_message.from_user.id)
-        mention = await other.get_mention(message.reply_to_message.from_user)
+        mention = await other.get_user_mention(message.reply_to_message.from_user)
         await message.reply(f"Пользователь {mention} разбанен")
     except Exception as err:
         error_msg = await message.answer(f"Что-то пошло не так:\n\n{err}")
@@ -165,11 +150,7 @@ async def unban_user(message: types.Message, bot: Bot):
     await message.delete()
 
 
-@router.message(
-    filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("black", prefix="!/"),
-    filters.AnyAdminFilter(),
-)
+@router.message(Command("black", prefix="!/"))
 async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
     if not message.reply_to_message:
         await message.answer(reply_required_error(message, "добавить в черный список"))
@@ -183,20 +164,42 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
     id_user = message.reply_to_message.from_user.id
     try:
         await bot.ban_chat_member(message.chat.id, id_user)
-        mention = await other.get_mention(message.reply_to_message.from_user)
+        mention = await other.get_user_mention(message.reply_to_message.from_user)
         await message.reply_to_message.delete()
         await message.answer(f"{mention} добавлен в черный список.")
-        await moderation.add_to_blacklist(user_repo.db, bot, id_user)
+        await moderation_services.add_to_blacklist(user_repo.db, bot, id_user)
     except Exception as err:
         await message.answer(f"Произошла ошибка:\n\n{err}")
         logger.error(f"Error while adding user {id_user} to blacklist: {err}")
 
 
-@router.message(
-    filters.ChatTypeFilter(["group", "supergroup"]),
-    Command("welcome", prefix="!/"),
-    filters.AnyAdminFilter(),
-)
+@router.message(Command("spam", prefix="!/"))
+async def label_spam(message: types.Message, message_repo: MessageRepository, db: AsyncSession, bot: Bot):
+    if not message.reply_to_message:
+        await message.answer(reply_required_error(message, "пометить как спам"))
+        return
+
+    spammer_message_id = message.reply_to_message.message_id
+    spammer_chat_id = message.reply_to_message.chat.id
+    spammer_user_id = message.reply_to_message.from_user.id
+
+    await message_repo.label_spam(
+        chat_id=spammer_chat_id,
+        message_id=spammer_message_id,
+    )
+    await bot.delete_message(spammer_chat_id, spammer_message_id)
+    await message.delete()
+
+    user_messages = await message_repo.get_user_messages(spammer_user_id)
+    for message_row in user_messages:
+        try:
+            await bot.ban_chat_member(message_row.chat_id, message_row.user_id, revoke_messages=True)
+        except Exception as err:
+            logger.error(f"Error while deleting message: {err}")
+
+    await moderation_services.add_to_blacklist(db, bot, spammer_user_id)
+
+
 async def welcome_change(message: types.Message, chat_repo: ChatRepository):
     welcome_message = message.text.partition(" ")[2]
     await chat_repo.update_welcome_message(message.chat.id, welcome_message)

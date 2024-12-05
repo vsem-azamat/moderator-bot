@@ -3,6 +3,7 @@ import asyncio
 import datetime
 from pytz import timezone
 from aiogram import types
+from typing import Union
 
 
 async def sleep_and_delete(message: types.Message, seconds: int = 60):
@@ -10,8 +11,50 @@ async def sleep_and_delete(message: types.Message, seconds: int = 60):
     await message.delete()
 
 
-async def get_mention(user: types.User) -> str:
+async def get_user_mention(user: types.User) -> str:
     return user.mention_html()
+
+
+async def get_chat_mention(tg_object: Union[types.Message, types.Chat]) -> str:
+    chat_link = await get_chat_link(tg_object)
+    if isinstance(tg_object, types.Message):
+        return f'<a href="{chat_link}">{tg_object.chat.title}</a>'
+    else:
+        return f'<a href="{chat_link}">{tg_object.title}</a>'
+    
+
+async def get_message_mention(message: types.Message) -> str:
+    chat_link = await get_message_link(message)
+    return f'<a href="{chat_link}">Cообщение</a>'
+
+
+async def get_message_link(tg_object: Union[types.Message, types.Chat]) -> str:
+    # chat = objecys.chat
+    if isinstance(tg_object, types.Message):
+        chat = tg_object.chat
+    else:
+        chat = tg_object
+
+    if chat.username:  # Public chat or channel
+        return f"https://t.me/{chat.username}/{tg_object.message_id}"
+    
+    elif chat.type in ["group", "supergroup"]:  # Private group without username
+        return f"https://t.me/c/{str(chat.id)[4:]}/{tg_object.message_id}"
+    
+    else:  # Private 1-on-1 chat
+        return f"https://t.me/{chat.id}/{tg_object.message_id}"
+
+
+async def get_chat_link(tg_object: Union[types.Message, types.Chat]) -> str:
+    if isinstance(tg_object, types.Message):
+        chat = tg_object.chat
+    else:
+        chat = tg_object
+
+    if chat.username:
+        return f"https://t.me/{chat.username}"
+    else:
+        return f"https://t.me/c/{str(chat.id)[4:]}"
 
 
 class MuteDuration:

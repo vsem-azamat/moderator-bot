@@ -33,3 +33,15 @@ async def get_chats(message: types.Message, db: AsyncSession):
     bot_message = await message.answer(text, reply_markup=builder.as_markup())
     await message.delete()
     await other.sleep_and_delete(bot_message)
+
+
+@router.message(Command("contacts", prefix="/!"))
+async def get_contacts(message: types.Message):
+    text = (
+        "📞 <b>Контакты:</b>\n\n"
+        "📧 <b>Сотрудничество:</b> @czech_media_admin\n"
+        "🧑🏿‍💻 <b>Dev:</b> @vsem_azamat"
+    )
+    bot_message = await message.answer(text)
+    await message.delete()
+    await other.sleep_and_delete(bot_message)

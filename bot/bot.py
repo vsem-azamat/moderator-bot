@@ -8,17 +8,16 @@ from bot.logger import logger
 from bot.handlers import router
 from bot.middlewares import (
     HistoryMiddleware,
-    DbSessionMiddleware,
+    DependenciesMiddleware,
     BlacklistMiddleware,
     ManagedChatsMiddleware,
 )
-from database.session import sessionmaker, create_db, close_db, insert_chat_link
+from database.session import sessionmaker, close_db, insert_chat_link
 
 
 async def on_startup(bot: Bot) -> None:
     await bot.delete_webhook()
     logger.info("Bot started")
-    await create_db()
     await insert_chat_link()
 
 
@@ -37,10 +36,10 @@ async def get_bot_and_dp() -> tuple[Bot, Dispatcher]:
 
 async def main() -> None:
     bot, dp = await get_bot_and_dp()
-    dp.update.middleware(DbSessionMiddleware(session_pool=sessionmaker))
+    dp.update.middleware(DependenciesMiddleware(session_pool=sessionmaker, bot=bot))
     dp.update.middleware(HistoryMiddleware())
-    dp.message.middleware(BlacklistMiddleware(bot))
-    dp.message.middleware(ManagedChatsMiddleware(bot))
+    dp.message.middleware(BlacklistMiddleware())
+    dp.message.middleware(ManagedChatsMiddleware())
     dp.callback_query.middleware(CallbackAnswerMiddleware())
 
     try:

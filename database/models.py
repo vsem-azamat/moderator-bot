@@ -16,18 +16,27 @@ class Chat(Base):
     __tablename__ = "chats"
 
     id: Mapped[BigInteger] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
-    welcome_message: Mapped[String] = mapped_column(String)
+    title: Mapped[String] = mapped_column(String, nullable=True)
+    is_forum: Mapped[Boolean] = mapped_column(Boolean, default=False)
+    welcome_message: Mapped[String] = mapped_column(String, nullable=True)
     time_delete: Mapped[Integer] = mapped_column(Integer, default=60)
     is_welcome_enabled: Mapped[Boolean] = mapped_column(Boolean, default=False)
     is_captcha_enabled: Mapped[Integer] = mapped_column(Integer, default=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, default=datetime.datetime.now)
+    modified_at: Mapped[DateTime] = mapped_column(DateTime, onupdate=datetime.datetime.now)
 
 
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[BigInteger] = mapped_column(BigInteger, primary_key=True, autoincrement=False)
+    username: Mapped[String] = mapped_column(String, nullable=True)
+    first_name: Mapped[String] = mapped_column(String, nullable=True)
+    last_name: Mapped[String] = mapped_column(String, nullable=True)
     verify: Mapped[Boolean] = mapped_column(Boolean, default=True)
     blocked: Mapped[Boolean] = mapped_column(Boolean, default=False)
+    created_at: Mapped[DateTime] = mapped_column(DateTime, default=datetime.datetime.now)
+    modified_at: Mapped[DateTime] = mapped_column(DateTime, onupdate=datetime.datetime.now)
 
 
 class ChatLink(Base):
@@ -45,6 +54,7 @@ class Message(Base):
     id: Mapped[Integer] = mapped_column(Integer, primary_key=True)
     chat_id: Mapped[BigInteger] = mapped_column(BigInteger)
     user_id: Mapped[BigInteger] = mapped_column(BigInteger)
+    message_id: Mapped[BigInteger] = mapped_column(BigInteger)
     message: Mapped[String] = mapped_column(String, nullable=True)
     message_info: Mapped[JSON] = mapped_column(JSON)
     timestamp: Mapped[DateTime] = mapped_column(DateTime, default=datetime.datetime.now)

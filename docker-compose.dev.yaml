@@ -7,9 +7,13 @@ services:
       - .:/app
     depends_on:
       - db
-    command: watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m bot
     environment:
       - PYTHONUNBUFFERED=1
+    command: >
+      bash -c "
+      alembic upgrade head &&
+      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m bot
+      "
 
   db:
     image: postgres

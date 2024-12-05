@@ -1,5 +1,5 @@
 from typing import Sequence
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Admin
@@ -15,6 +15,11 @@ class AdminRepository:
 
     async def insert_admin(self, id_tg: int) -> None:
         await self.db.execute(insert(Admin).values(id=id_tg))
+        await self.db.commit()
+
+
+    async def delete_admin(self, id_tg: int) -> None:
+        await self.db.execute(delete(Admin).where(Admin.id == id_tg))
         await self.db.commit()
 
 
