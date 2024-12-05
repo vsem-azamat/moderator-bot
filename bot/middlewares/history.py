@@ -24,7 +24,7 @@ class HistoryMiddleware(BaseMiddleware):
 
                 if isinstance(user, types.User):
                     try:
-                        await history_service.save_user(db, user)
+                        await history_service.merge_user(db, user)
                     except Exception as err:
                         logger.error(f"Error while saving user: {err}")
 
