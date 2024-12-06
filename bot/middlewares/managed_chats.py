@@ -20,17 +20,19 @@ class ManagedChatsMiddleware(BaseMiddleware):
     ) -> Any:
         bot: Bot = data["bot"]
         db: AsyncSession = data["db"]
-        if isinstance(event, types.Message) and event.chat.type in [
-            "group",
-            "supergroup",
-        ]:
-            chat_admins = await bot.get_chat_administrators(event.chat.id)
+        if (
+            isinstance(event, types.Update) 
+            and isinstance(event.message, types.Message)
+            and event.message.chat.type in ["group", "supergroup"]
+        ):
+            message = event.message
+            chat_admins = await bot.get_chat_administrators(message.chat.id)
             chat_admins_id = {admin.user.id for admin in chat_admins}
             if any(super_admin in chat_admins_id for super_admin in cnfg.SUPER_ADMINS):
-                await history_service.merge_chat(db, event.chat)
+                await history_service.merge_chat(db, message.chat)
                 return await handler(event, data)
 
             # If at least no one super admin in chat, then leave chat
-            await bot.leave_chat(event.chat.id)
+            await bot.leave_chat(message.chat.id)
             return
         return await handler(event, data)
