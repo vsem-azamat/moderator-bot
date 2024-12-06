@@ -168,6 +168,7 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
         await message.reply_to_message.delete()
         await message.answer(f"{mention} добавлен в черный список.")
         await moderation_services.add_to_blacklist(user_repo.db, bot, id_user)
+        await message.delete()
     except Exception as err:
         await message.answer(f"Произошла ошибка:\n\n{err}")
         logger.error(f"Error while adding user {id_user} to blacklist: {err}")
