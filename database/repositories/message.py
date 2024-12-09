@@ -1,6 +1,6 @@
 from typing import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import insert, update, select
+from sqlalchemy import func, insert, update, select 
 from sqlalchemy.sql.expression import and_
 
 from database.models import Message
@@ -38,7 +38,18 @@ class MessageRepository:
         query = select(Message).where(Message.user_id == user_id)
         result = await self.db.execute(query)
         return result.scalars().all()
-
+    
+    async def is_first_message(self, chat_id: int, user_id: int) -> bool:
+        query = select(func.count()).where(Message.user_id == user_id, Message.chat_id == chat_id)
+        result = await self.db.execute(query)
+        count = result.scalar()
+        return count is not None and count > 0
+    
+    async def is_similar_spam_message(self, message: str) -> bool:
+        query = select(func.count()).where(Message.message == message, Message.spam == True)
+        result = await self.db.execute(query)
+        count = result.scalar()
+        return count is not None and count > 0
 
 def get_message_repository(db: AsyncSession) -> MessageRepository:
     return MessageRepository(db)

@@ -1,11 +1,10 @@
 import asyncio
 from aiogram import BaseMiddleware, types
 from aiogram.types import TelegramObject
-from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Callable, Awaitable, Dict, Any
 
 from config import cnfg
-from database.repositories import get_admin_repository
+from database.repositories import AdminRepository
 
 
 async def you_are_not_admin(
@@ -39,8 +38,7 @@ class AdminMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        db: AsyncSession = data["db"]
-        admin_repo = get_admin_repository(db)
+        admin_repo: AdminRepository = data["admin_repo"]
         admins_id = [admin.id for admin in await admin_repo.get_db_admins()]
         all_admins_id = admins_id + cnfg.SUPER_ADMINS
         if isinstance(event, types.Message) and event.from_user.id in all_admins_id:
@@ -56,8 +54,7 @@ class AnyAdminMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
-        db: AsyncSession = data["db"]
-        admin_repo = get_admin_repository(db)
+        admin_repo: AdminRepository = data["admin_repo"]
         admins_id = [admin.id for admin in await admin_repo.get_db_admins()]
         if isinstance(event, types.Message) and (event.from_user.id in admins_id or event.from_user.id in cnfg.SUPER_ADMINS):
             return await handler(event, data)
