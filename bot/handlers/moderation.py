@@ -188,13 +188,16 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, db
         chat_id=spammer_chat_id,
         message_id=spammer_message_id,
     )
-    await bot.delete_message(spammer_chat_id, spammer_message_id)
-    await message.delete()
 
     user_messages = await message_repo.get_user_messages(spammer_user_id)
     for message_row in user_messages:
         try:
             await bot.ban_chat_member(message_row.chat_id, message_row.user_id, revoke_messages=True)
+        except Exception as err:
+            logger.error(f"Error while banning user: {err}")
+        
+        try:
+            await bot.delete_message(message_row.chat_id, message_row.message_id)
         except Exception as err:
             logger.error(f"Error while deleting message: {err}")
 
