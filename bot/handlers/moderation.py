@@ -2,6 +2,7 @@ from aiogram import types, Router, Bot
 from aiogram.filters import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from typing import cast
 from bot.logger import logger
 from bot.utils import other
 from bot.services import moderation as moderation_services
@@ -188,20 +189,7 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, db
         chat_id=spammer_chat_id,
         message_id=spammer_message_id,
     )
-
-    user_messages = await message_repo.get_user_messages(spammer_user_id)
-    for message_row in user_messages:
-        try:
-            await bot.ban_chat_member(message_row.chat_id, message_row.user_id, revoke_messages=True)
-        except Exception as err:
-            logger.error(f"Error while banning user: {err}")
-        
-        try:
-            await bot.delete_message(message_row.chat_id, message_row.message_id)
-        except Exception as err:
-            logger.error(f"Error while deleting message: {err}")
-
-    await moderation_services.add_to_blacklist(db, bot, spammer_user_id)
+    await moderation_services.add_to_blacklist(db, bot, spammer_user_id, revoke_messages=True)
 
 
 async def welcome_change(message: types.Message, chat_repo: ChatRepository):
