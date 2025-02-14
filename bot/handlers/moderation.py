@@ -179,6 +179,7 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
 async def label_spam(message: types.Message, message_repo: MessageRepository, db: AsyncSession, bot: Bot):
     if not message.reply_to_message:
         await message.answer(reply_required_error(message, "пометить как спам"))
+        await message.delete()
         return
 
     spammer_message_id = message.reply_to_message.message_id
