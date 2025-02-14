@@ -192,6 +192,7 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, db
         message_id=spammer_message_id,
     )
     await moderation_services.add_to_blacklist(db, bot, spammer_user_id, revoke_messages=True)
+    await message.delete()
 
 
 async def welcome_change(message: types.Message, chat_repo: ChatRepository):
