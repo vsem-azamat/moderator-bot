@@ -20,16 +20,22 @@ async def add_to_blacklist(
 
     async def ban_user(chat_id: int) -> None:
         try:
-            member = await bot.get_chat_member(chat_id, id_tg)
-            if member.status not in ['left', 'kicked']:
+            try:
                 await bot.ban_chat_member(chat_id, id_tg, revoke_messages=revoke_messages)
-            else:
+            except Exception as err:
+                logger.warning(f"Failed to ban user {id_tg} in chat {chat_id}.\n" f"Error: {err}")
+
+            if revoke_messages:
                 user_messages = await message_repo.get_user_messages(id_tg)
                 for message in user_messages:
-                    await message_repo.label_spam(
-                        chat_id=cast(int, message.chat_id),
-                        message_id=cast(int, message.message_id),
-                    )
+                    try:
+                        await bot.delete_message(
+                            chat_id=cast(int, message.chat_id),
+                            message_id=cast(int, message.message_id),
+                        )
+                    except Exception as err:
+                        logger.warning(f"Failed to delete message {message.message_id} in chat {chat_id}.\n" f"Error: {err}")   
+
         except Exception as err:
             logger.warning(
                 f"Failed to ban user {id_tg} in chat {chat_id}.\n" f"Maybe the user is already banned or not in the chat.\n" f"Error: {err}"
