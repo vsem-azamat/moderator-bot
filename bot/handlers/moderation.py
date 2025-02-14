@@ -178,8 +178,9 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
 @router.message(Command("spam", prefix="!/"))
 async def label_spam(message: types.Message, message_repo: MessageRepository, db: AsyncSession, bot: Bot):
     if not message.reply_to_message:
-        await message.answer(reply_required_error(message, "пометить как спам"))
+        answer = await message.answer(reply_required_error(message, "пометить как спам"))
         await message.delete()
+        await other.sleep_and_delete(answer, 10)
         return
 
     spammer_message_id = message.reply_to_message.message_id
