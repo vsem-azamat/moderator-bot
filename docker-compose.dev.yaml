@@ -12,7 +12,7 @@ services:
     command: >
       bash -c "
       alembic upgrade head &&
-      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m bot
+      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m app.presentation.telegram
       "
 
   db:

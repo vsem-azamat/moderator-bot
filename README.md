@@ -30,6 +30,21 @@ For moderating educational chats in the Czech Republic on Telegram. The bot is c
 | Report | Sending a report to the admins | ❌ |
 | ML model | Detecting spam messages | ❌ |
 
+## Architecture
+
+The project now follows a layered Domain-Driven approach:
+
+- `app/domain` contains domain models.
+- `app/infrastructure` provides infrastructure code like database repositories.
+- `app/application` holds application services.
+- `app/presentation` includes the Telegram interface with handlers and middlewares.
+
+Run the bot with:
+
+```bash
+python -m app.presentation.telegram
+```
+
 
 ## Setup and Run
 1) Set up the environment:

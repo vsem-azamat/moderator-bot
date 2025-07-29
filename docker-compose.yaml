@@ -12,7 +12,7 @@ services:
     command: >
       bash -c "
       alembic upgrade head &&
-      python3 -m bot
+      python3 -m app.presentation.telegram
       "
 
   db:
