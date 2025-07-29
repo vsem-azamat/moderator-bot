@@ -1,12 +1,14 @@
 from aiogram import types, Router, Bot
 from aiogram.filters import Command
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from typing import cast
 from bot.logger import logger
-from bot.utils import other
+from bot.utils import other, BlacklistConfirm
 from bot.services import moderation as moderation_services
-from database.repositories import UserRepository, ChatRepository, MessageRepository
+from bot.services import spam as spam_service
+from database.repositories import ChatRepository, MessageRepository
 
 
 router = Router()
@@ -152,7 +154,7 @@ async def unban_user(message: types.Message, bot: Bot):
 
 
 @router.message(Command("black", prefix="!/"))
-async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
+async def full_ban(message: types.Message, bot: Bot, message_repo: MessageRepository, db: AsyncSession):
     if not message.reply_to_message:
         await message.answer(reply_required_error(message, "добавить в черный список"))
         return
@@ -162,17 +164,32 @@ async def full_ban(message: types.Message, bot: Bot, user_repo: UserRepository):
         logger.warning(f"User {message.reply_to_message.from_user} is not a user.")
         return
 
-    id_user = message.reply_to_message.from_user.id
-    try:
-        await bot.ban_chat_member(message.chat.id, id_user)
-        mention = await other.get_user_mention(message.reply_to_message.from_user)
-        await message.reply_to_message.delete()
-        await message.answer(f"{mention} добавлен в черный список.")
-        await moderation_services.add_to_blacklist(user_repo.db, bot, id_user)
-        await message.delete()
-    except Exception as err:
-        await message.answer(f"Произошла ошибка:\n\n{err}")
-        logger.error(f"Error while adding user {id_user} to blacklist: {err}")
+    target = message.reply_to_message
+    id_user = target.from_user.id
+    chats_count = await message_repo.count_user_chats(id_user)
+    messages_count = await message_repo.count_user_messages(id_user)
+    spam_flag = await spam_service.detect_spam(db, target)
+
+    info_text = (
+        "<b>Вы уверены?</b>\n\n"
+        "<b>Информация:</b>\n"
+        f"- {chats_count} чатов\n"
+        f"- {messages_count} сообщений\n"
+        f"- {'спам обнаружен' if spam_flag else 'спам не обнаружен'}"
+    )
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Yes",
+        callback_data=BlacklistConfirm(
+            user_id=id_user,
+            chat_id=target.chat.id,
+            message_id=target.message_id,
+        ).pack(),
+    )
+    builder.button(text="No", callback_data="cancel_blacklist")
+    builder.adjust(2)
+    await message.answer(info_text, reply_markup=builder.as_markup())
+    await message.delete()
 
 
 @router.message(Command("spam", prefix="!/"))
@@ -183,15 +200,33 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, db
         await other.sleep_and_delete(answer, 10)
         return
 
-    spammer_message_id = message.reply_to_message.message_id
-    spammer_chat_id = message.reply_to_message.chat.id
-    spammer_user_id = message.reply_to_message.from_user.id
+    target = message.reply_to_message
+    spammer_user_id = target.from_user.id
+    chats_count = await message_repo.count_user_chats(spammer_user_id)
+    messages_count = await message_repo.count_user_messages(spammer_user_id)
+    spam_flag = await spam_service.detect_spam(db, target)
 
-    await message_repo.label_spam(
-        chat_id=spammer_chat_id,
-        message_id=spammer_message_id,
+    info_text = (
+        "<b>Вы уверены?</b>\n\n"
+        "<b>Информация:</b>\n"
+        f"- {chats_count} чатов\n"
+        f"- {messages_count} сообщений\n"
+        f"- {'спам обнаружен' if spam_flag else 'спам не обнаружен'}"
     )
-    await moderation_services.add_to_blacklist(db, bot, spammer_user_id, revoke_messages=True)
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="Yes",
+        callback_data=BlacklistConfirm(
+            user_id=spammer_user_id,
+            chat_id=target.chat.id,
+            message_id=target.message_id,
+            revoke=1,
+            mark_spam=1,
+        ).pack(),
+    )
+    builder.button(text="No", callback_data="cancel_blacklist")
+    builder.adjust(2)
+    await message.answer(info_text, reply_markup=builder.as_markup())
     await message.delete()
 
 
@@ -201,3 +236,44 @@ async def welcome_change(message: types.Message, chat_repo: ChatRepository):
     await message.answer("<b>Приветственное сообщение изменено!</b>")
     await message.answer(welcome_message)
     await message.delete()
+
+
+@router.callback_query(BlacklistConfirm.filter())
+async def process_blacklist_confirm(
+    callback: types.CallbackQuery,
+    callback_data: BlacklistConfirm,
+    bot: Bot,
+    db: AsyncSession,
+    message_repo: MessageRepository,
+):
+    user_id = callback_data.user_id
+    chat_id = callback_data.chat_id
+    message_id = callback_data.message_id
+    revoke = bool(callback_data.revoke)
+    mark_spam = bool(callback_data.mark_spam)
+
+    if mark_spam:
+        await message_repo.label_spam(chat_id=chat_id, message_id=message_id)
+
+    try:
+        await bot.delete_message(chat_id=chat_id, message_id=message_id)
+    except Exception as err:
+        logger.warning(f"Failed to delete message {message_id}: {err}")
+
+    try:
+        await bot.ban_chat_member(callback.message.chat.id, user_id)
+        member = await bot.get_chat_member(callback.message.chat.id, user_id)
+        mention = await other.get_user_mention(member.user)
+        await moderation_services.add_to_blacklist(db, bot, user_id, revoke_messages=revoke)
+        await callback.message.edit_text(f"{mention} добавлен в черный список.")
+    except Exception as err:
+        await callback.message.edit_text(f"Произошла ошибка:\n\n{err}")
+        logger.error(f"Error while adding user {user_id} to blacklist: {err}")
+
+    await callback.answer()
+
+
+@router.callback_query(lambda c: c.data == "cancel_blacklist")
+async def process_blacklist_cancel(callback: types.CallbackQuery):
+    await callback.message.edit_text("Действие отменено")
+    await callback.answer()
