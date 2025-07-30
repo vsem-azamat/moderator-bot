@@ -12,11 +12,11 @@ from app.infrastructure.db.repositories import (
 
 
 async def add_to_blacklist(
-    db: AsyncSession, 
-    bot: Bot, 
+    db: AsyncSession,
+    bot: Bot,
     id_tg: int,
     revoke_messages: bool | None = None,
-    ) -> None:
+) -> None:
     user_repo = UserRepository(db)
     chat_repo = ChatRepository(db)
     message_repo = MessageRepository(db)
@@ -38,11 +38,13 @@ async def add_to_blacklist(
                             message_id=cast(int, message.message_id),
                         )
                     except Exception as err:
-                        logger.warning(f"Failed to delete message {message.message_id} in chat {chat_id}.\n" f"Error: {err}")   
+                        logger.warning(f"Failed to delete message {message.message_id} in chat {chat_id}.\n" f"Error: {err}")
 
         except Exception as err:
             logger.warning(
-                f"Failed to ban user {id_tg} in chat {chat_id}.\n" f"Maybe the user is already banned or not in the chat.\n" f"Error: {err}"
+                f"Failed to ban user {id_tg} in chat {chat_id}.\n"
+                f"Maybe the user is already banned or not in the chat.\n"
+                f"Error: {err}"
             )
 
     tasks = [ban_user(cast(int, chat.id)) for chat in await chat_repo.get_chats()]

@@ -4,12 +4,7 @@ from config import cnfg
 from app.presentation.telegram.utils import other
 
 
-async def report_to_moderators(
-    bot: Bot, 
-    reporter: types.User,
-    reported: types.User,
-    reported_message: types.Message
-    ) -> None:
+async def report_to_moderators(bot: Bot, reporter: types.User, reported: types.User, reported_message: types.Message) -> None:
     chat_mention = await other.get_chat_mention(reported_message)
     reported_message_metion = await other.get_message_mention(reported_message)
 
@@ -20,7 +15,4 @@ async def report_to_moderators(
         f"📝 {reported_message_metion}:\n"
         f"{reported_message.text}"
     )
-    await bot.send_message(
-        chat_id=cnfg.REPORT_CHAT_ID,
-        text=text
-    )
+    await bot.send_message(chat_id=cnfg.REPORT_CHAT_ID, text=text)

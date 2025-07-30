@@ -7,10 +7,7 @@ from config import cnfg
 from app.infrastructure.db.repositories import AdminRepository
 
 
-async def you_are_not_admin(
-    event: TelegramObject, 
-    text: str = "You are not an Admin."
-    ) -> None:
+async def you_are_not_admin(event: TelegramObject, text: str = "You are not an Admin.") -> None:
     if isinstance(event, types.Message):
         asnwer = await event.answer(text)
         event.delete()

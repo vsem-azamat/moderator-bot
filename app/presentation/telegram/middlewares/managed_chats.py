@@ -21,7 +21,7 @@ class ManagedChatsMiddleware(BaseMiddleware):
         bot: Bot = data["bot"]
         db: AsyncSession = data["db"]
         if (
-            isinstance(event, types.Update) 
+            isinstance(event, types.Update)
             and isinstance(event.message, types.Message)
             and event.message.chat.type in ["group", "supergroup"]
         ):

@@ -54,13 +54,13 @@ cp .env.example .env
 2) Fill in the `.env` file with your bot token.
 
 ### Development
-3) Run the bot in development mode (the compose file waits for the database to be ready):
+3) Run the bot in development mode (the compose file waits up to 60 seconds for the database to be ready):
 ```bash
 docker-compose -f docker-compose.dev.yaml up --build
 ```
 
 ### Production
-3) Run the bot in production mode (the compose file waits for the database to be ready):
+3) Run the bot in production mode (the compose file waits up to 60 seconds for the database to be ready):
 ```bash
 docker-compose up --build
 ```
