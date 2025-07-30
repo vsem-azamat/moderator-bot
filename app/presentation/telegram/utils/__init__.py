@@ -1,1 +1,6 @@
-from .callback_data import BlacklistConfirm
+from .callback_data import BlacklistConfirm, UnblockUser
+
+__all__ = [
+    "BlacklistConfirm",
+    "UnblockUser",
+]
