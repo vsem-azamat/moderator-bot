@@ -11,8 +11,9 @@ services:
       - PYTHONUNBUFFERED=1
     command: >
       bash -c "
+      ./scripts/wait_for_postgres.sh &&
       alembic upgrade head &&
-      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m bot
+      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m app.presentation.telegram
       "
 
   db:
