@@ -309,5 +309,7 @@ async def unblock_user_callback(
 ):
     user_id = callback_data.user_id
     await moderation_services.remove_from_blacklist(db, bot, user_id)
-    await callback.message.edit_text(f"Пользователь {user_id} разблокирован")
+    member = await bot.get_chat_member(callback.message.chat.id, user_id)
+    user_identifier = member.user.username or member.user.first_name or str(member.user.id)
+    await callback.message.edit_text(f"Пользователь {user_identifier} разблокирован")
     await callback.answer()
