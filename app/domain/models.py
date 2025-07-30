@@ -1,5 +1,6 @@
 import datetime
-from sqlalchemy import Integer, String, Boolean, BigInteger, DateTime, JSON
+
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.db.base import Base
@@ -23,7 +24,9 @@ class Chat(Base):
     is_welcome_enabled: Mapped[Boolean] = mapped_column(Boolean, default=False)
     is_captcha_enabled: Mapped[Integer] = mapped_column(Integer, default=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, default=datetime.datetime.now)
-    modified_at: Mapped[DateTime] = mapped_column(DateTime, onupdate=datetime.datetime.now)
+    modified_at: Mapped[DateTime] = mapped_column(
+        DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now
+    )
 
 
 class User(Base):
@@ -36,7 +39,9 @@ class User(Base):
     verify: Mapped[Boolean] = mapped_column(Boolean, default=True)
     blocked: Mapped[Boolean] = mapped_column(Boolean, default=False)
     created_at: Mapped[DateTime] = mapped_column(DateTime, default=datetime.datetime.now)
-    modified_at: Mapped[DateTime] = mapped_column(DateTime, onupdate=datetime.datetime.now)
+    modified_at: Mapped[DateTime] = mapped_column(
+        DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now
+    )
 
 
 class ChatLink(Base):
