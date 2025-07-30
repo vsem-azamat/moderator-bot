@@ -7,12 +7,13 @@ from config import cnfg
 from app.infrastructure.db.repositories import AdminRepository
 
 
-async def you_are_not_admin(event: TelegramObject, text: str = "You are not an Admin.") -> None:
+async def you_are_not_admin(event: TelegramObject, text: str = "🚫 You are not an Admin.") -> None:
+    """Inform user that they are not an admin and remove helper messages."""
     if isinstance(event, types.Message):
-        asnwer = await event.answer(text)
-        event.delete()
+        answer = await event.answer(text)
+        await event.delete()
         await asyncio.sleep(5)
-        await asnwer.delete()
+        await answer.delete()
 
 
 class SuperAdminMiddleware(BaseMiddleware):

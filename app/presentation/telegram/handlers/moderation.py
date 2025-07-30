@@ -14,21 +14,21 @@ from app.infrastructure.db.repositories import ChatRepository, MessageRepository
 router = Router()
 
 
-def reply_required_error(message: types.Message, action: str) -> str:
-    """Returns a standard error message for missing reply."""
-    return f"Примените команду к сообщению человека, которого нужно {action}."
+def reply_required_error(action: str) -> str:
+    """Standard error when a command should be a reply."""
+    return f"Примените команду ответом на сообщение пользователя, которого нужно {action}. 🙏"
 
 
 def is_user_check_error() -> str:
-    """Returns a standard error message for invalid user check."""
-    return "Это не пользователь или что-то пошло не так."
+    """Standard error when target message does not contain a user."""
+    return "🚫 Это не пользователь или что-то пошло не так."
 
 
 @router.message(Command("mute", prefix="!/"))
 async def mute_user(message: types.Message, bot: Bot):
     # Ensure command is used as a reply
     if not message.reply_to_message:
-        await message.answer(reply_required_error(message, "замутить"))
+        await message.answer(reply_required_error("замутить"))
         await message.delete()
         return
 
@@ -85,7 +85,7 @@ async def mute_user(message: types.Message, bot: Bot):
 @router.message(Command("unmute", prefix="!/"))
 async def unmute_member(message: types.Message):
     if not message.reply_to_message:
-        await message.answer(reply_required_error(message, "размутить"))
+        await message.answer(reply_required_error("размутить"))
         await message.delete()
         return
 
@@ -114,7 +114,7 @@ async def unmute_member(message: types.Message):
 @router.message(Command("ban", prefix="!/"))
 async def ban_user(message: types.Message, bot: Bot):
     if not message.reply_to_message:
-        await message.answer(reply_required_error(message, "забанить"))
+        await message.answer(reply_required_error("забанить"))
         return
 
     if not message.reply_to_message.from_user:
@@ -135,7 +135,7 @@ async def ban_user(message: types.Message, bot: Bot):
 @router.message(Command("unban", prefix="!/"))
 async def unban_user(message: types.Message, bot: Bot):
     if not message.reply_to_message:
-        await message.answer(reply_required_error(message, "разбанить"))
+        await message.answer(reply_required_error("разбанить"))
         return
 
     if not message.reply_to_message.from_user:
@@ -156,7 +156,7 @@ async def unban_user(message: types.Message, bot: Bot):
 @router.message(Command("black", prefix="!/"))
 async def full_ban(message: types.Message, bot: Bot, message_repo: MessageRepository, db: AsyncSession):
     if not message.reply_to_message:
-        await message.answer(reply_required_error(message, "добавить в черный список"))
+        await message.answer(reply_required_error("добавить в черный список"))
         return
 
     if not message.reply_to_message.from_user:
@@ -195,7 +195,7 @@ async def full_ban(message: types.Message, bot: Bot, message_repo: MessageReposi
 @router.message(Command("spam", prefix="!/"))
 async def label_spam(message: types.Message, message_repo: MessageRepository, db: AsyncSession, bot: Bot):
     if not message.reply_to_message:
-        answer = await message.answer(reply_required_error(message, "пометить как спам"))
+        answer = await message.answer(reply_required_error("пометить как спам"))
         await message.delete()
         await other.sleep_and_delete(answer, 10)
         return
