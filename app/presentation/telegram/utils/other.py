@@ -22,7 +22,8 @@ async def get_chat_mention(tg_object: Union[types.Message, types.Chat]) -> str:
     chat_link = await get_chat_link(tg_object)
     if isinstance(tg_object, types.Message):
         return f'<a href="{chat_link}">{tg_object.chat.title}</a>'
-    return f'<a href="{chat_link}">{tg_object.title}</a>'
+    else:
+        return f'<a href="{chat_link}">{tg_object.title}</a>'
 
 
 async def get_message_mention(message: types.Message) -> str:
