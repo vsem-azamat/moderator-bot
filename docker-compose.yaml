@@ -11,8 +11,9 @@ services:
       - PYTHONUNBUFFERED=1
     command: >
       bash -c "
+      ./scripts/wait_for_postgres.sh &&
       alembic upgrade head &&
-      python3 -m bot
+      uv run -m app.presentation.telegram
       "
 
   db:
