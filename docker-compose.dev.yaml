@@ -13,7 +13,7 @@ services:
       bash -c "
       ./scripts/wait_for_postgres.sh &&
       alembic upgrade head &&
-      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- python3 -m app.presentation.telegram
+      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- uv run -m app.presentation.telegram
       "
 
   db:
