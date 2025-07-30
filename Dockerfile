@@ -13,6 +13,6 @@ RUN pip install --no-cache-dir uv
 COPY . .
 
 # Install project dependencies using uv
-RUN uv pip install --system -e .
+RUN uv pip install --system .
 
 CMD ["python3", "-m", "app.presentation.telegram"]
