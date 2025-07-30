@@ -6,16 +6,19 @@ from aiogram import types
 from typing import Union
 
 
-async def sleep_and_delete(message: types.Message, seconds: int = 60):
+async def sleep_and_delete(message: types.Message, seconds: int = 60) -> None:
+    """Delete a message after a short delay."""
     await asyncio.sleep(seconds)
     await message.delete()
 
 
 async def get_user_mention(user: types.User) -> str:
+    """Return mention markup for a user."""
     return user.mention_html()
 
 
 async def get_chat_mention(tg_object: Union[types.Message, types.Chat]) -> str:
+    """Return HTML link to a chat or its message."""
     chat_link = await get_chat_link(tg_object)
     if isinstance(tg_object, types.Message):
         return f'<a href="{chat_link}">{tg_object.chat.title}</a>'
@@ -29,7 +32,7 @@ async def get_message_mention(message: types.Message) -> str:
 
 
 async def get_message_link(tg_object: Union[types.Message, types.Chat]) -> str:
-    # chat = objecys.chat
+    """Generate a direct link to a message."""
     if isinstance(tg_object, types.Message):
         chat = tg_object.chat
     else:
@@ -46,6 +49,7 @@ async def get_message_link(tg_object: Union[types.Message, types.Chat]) -> str:
 
 
 async def get_chat_link(tg_object: Union[types.Message, types.Chat]) -> str:
+    """Return a direct link to a chat."""
     if isinstance(tg_object, types.Message):
         chat = tg_object.chat
     else:
@@ -68,6 +72,7 @@ class MuteDuration:
 
 
 def calculate_mute_duration(message: str) -> MuteDuration:
+    """Parse /mute command and calculate mute duration."""
     command_parse = re.compile(r"(!mute|/mute) ?(\d+)? ?(m|h|d|w)?")
     parsed = command_parse.match(message)
 
