@@ -22,3 +22,18 @@ the repository works.
   to speed quickly the next time you work on the project.
 - Keep the README synchronized with any setup or usage changes.
 
+## Architecture overview
+
+- The code base follows a layered Domain-Driven approach:
+  - `app/domain` defines ORM models and entities.
+  - `app/infrastructure` contains SQLAlchemy repositories and database helpers.
+  - `app/application` implements business services.
+  - `app/presentation` exposes the Telegram bot with routers and middlewares.
+- The Docker configuration waits for the Postgres container with
+  `scripts/wait_for_postgres.sh`, applies migrations via Alembic and then starts
+  the bot.
+- Tests run against an in-memory SQLite database via `pytest-asyncio` fixtures.
+
+These notes should help future Codex sessions quickly understand the project
+layout and any non-obvious logic.
+
