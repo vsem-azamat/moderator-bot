@@ -7,3 +7,7 @@ class BlacklistConfirm(CallbackData, prefix="blconfirm"):
     message_id: int
     revoke: int = 0
     mark_spam: int = 0
+
+
+class UnblockUser(CallbackData, prefix="unblock"):
+    user_id: int

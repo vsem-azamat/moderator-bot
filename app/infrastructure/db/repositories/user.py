@@ -41,6 +41,14 @@ class UserRepository:
             await self.db.execute(insert(User).values(id=id_tg, blocked=True))
         await self.db.commit()
 
+    async def remove_from_blacklist(self, id_tg: int) -> None:
+        user = await self.get_user(id_tg)
+        if user:
+            await self.db.execute(update(User).where(User.id == id_tg).values(blocked=False))
+            await self.db.commit()
+        else:
+            raise ValueError(f"User with id {id_tg} does not exist and cannot be removed from the blacklist.")
+
 
 def get_user_repository(db: AsyncSession) -> UserRepository:
     return UserRepository(db)

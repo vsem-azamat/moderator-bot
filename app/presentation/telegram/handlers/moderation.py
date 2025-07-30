@@ -5,10 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from typing import cast
 from app.presentation.telegram.logger import logger
-from app.presentation.telegram.utils import other, BlacklistConfirm
+from app.presentation.telegram.utils import other, BlacklistConfirm, UnblockUser
 from app.application.services import moderation as moderation_services
 from app.application.services import spam as spam_service
-from app.infrastructure.db.repositories import ChatRepository, MessageRepository
+from app.infrastructure.db.repositories import (
+    ChatRepository,
+    MessageRepository,
+    UserRepository,
+)
 
 
 router = Router()
@@ -276,4 +280,36 @@ async def process_blacklist_confirm(
 @router.callback_query(lambda c: c.data == "cancel_blacklist")
 async def process_blacklist_cancel(callback: types.CallbackQuery):
     await callback.message.edit_text("Действие отменено")
+    await callback.answer()
+
+
+@router.message(Command("blacklist", prefix="!/"))
+async def show_blacklist(message: types.Message, user_repo: UserRepository):
+    blocked_users = await user_repo.get_blocked_users()
+    if not blocked_users:
+        await message.answer("Чёрный список пуст")
+        await message.delete()
+        return
+
+    builder = InlineKeyboardBuilder()
+    for user in blocked_users:
+        title = user.username or user.first_name or str(user.id)
+        builder.button(text=title, callback_data=UnblockUser(user_id=user.id).pack())
+    builder.adjust(1)
+    await message.answer("<b>Чёрный список:</b>", reply_markup=builder.as_markup())
+    await message.delete()
+
+
+@router.callback_query(UnblockUser.filter())
+async def unblock_user_callback(
+    callback: types.CallbackQuery,
+    callback_data: UnblockUser,
+    bot: Bot,
+    db: AsyncSession,
+):
+    user_id = callback_data.user_id
+    await moderation_services.remove_from_blacklist(db, bot, user_id)
+    member = await bot.get_chat_member(callback.message.chat.id, user_id)
+    user_identifier = member.user.username or member.user.first_name or str(member.user.id)
+    await callback.message.edit_text(f"Пользователь {user_identifier} разблокирован")
     await callback.answer()

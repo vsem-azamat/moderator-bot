@@ -2,6 +2,8 @@ from aiogram import types, Router
 from aiogram.filters import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from config import cnfg
+from app.infrastructure.db.repositories import AdminRepository
 from app.presentation.telegram.utils import other
 from app.application.services import buttons as buttons_service
 
@@ -10,7 +12,7 @@ router = Router()
 
 
 @router.message(Command("start", "help", prefix="/!"))
-async def start_private(message: types.Message):
+async def start_private(message: types.Message, admin_repo: AdminRepository):
     text = (
         "<b>🤖 Привет!</b>\n"
         "Я модерирую чаты по Чехии!\n\n"
@@ -20,8 +22,29 @@ async def start_private(message: types.Message):
         "• /help - помощь\n"
         "• /report - пожаловаться (нужно переслать сообщение)\n"
     )
+
+    is_admin = message.from_user.id in cnfg.SUPER_ADMINS or await admin_repo.is_admin(message.from_user.id)
+    if is_admin:
+        text += (
+            "\n\n<b>👮 Команды для админов:</b>\n"
+            "• /mute - замутить пользователя\n"
+            "• /unmute - размутить пользователя\n"
+            "• /ban - бан и добавить в ЧС\n"
+            "• /unban - убрать из ЧС\n"
+            "• /black - занести в ЧС всех чатов\n"
+            "• /blacklist - посмотреть ЧС\n"
+            "• /welcome <text> - изменить приветствие\n"
+            "• /admin - добавить админа (ответом)\n"
+            "• /unadmin - убрать админа (ответом)\n"
+            "• /json - получить JSON сообщения\n"
+        )
+
     builder = await buttons_service.get_contacts_buttons()
-    bot_message = await message.answer(text, disable_web_page_preview=True, reply_markup=builder.as_markup())
+    bot_message = await message.answer(
+        text,
+        disable_web_page_preview=True,
+        reply_markup=builder.as_markup(),
+    )
     await message.delete()
     await other.sleep_and_delete(bot_message)
 
