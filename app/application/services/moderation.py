@@ -49,3 +49,21 @@ async def add_to_blacklist(
 
     tasks = [ban_user(cast(int, chat.id)) for chat in await chat_repo.get_chats()]
     await asyncio.gather(*tasks)
+
+
+async def remove_from_blacklist(db: AsyncSession, bot: Bot, id_tg: int) -> None:
+    user_repo = UserRepository(db)
+    chat_repo = ChatRepository(db)
+
+    await user_repo.remove_from_blacklist(id_tg)
+
+    async def unban_user(chat_id: int) -> None:
+        try:
+            await bot.unban_chat_member(chat_id, id_tg)
+        except Exception as err:
+            logger.warning(
+                f"Failed to unban user {id_tg} in chat {chat_id}.\n" f"Error: {err}"
+            )
+
+    tasks = [unban_user(cast(int, chat.id)) for chat in await chat_repo.get_chats()]
+    await asyncio.gather(*tasks)
