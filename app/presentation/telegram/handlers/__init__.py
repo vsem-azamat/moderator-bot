@@ -8,7 +8,6 @@ from app.presentation.telegram.middlewares import (
 
 router = Router()
 
-moderation.router.message.middleware(chat_type_middlewares.ChatTypeMiddleware(["group", "supergroup"]))
 moderation.router.message.middleware(admin_middlewares.AdminMiddleware())
 admin.router.message.middleware(chat_type_middlewares.ChatTypeMiddleware(["group", "supergroup"]))
 admin.router.message.middleware(admin_middlewares.SuperAdminMiddleware())
