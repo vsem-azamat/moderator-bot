@@ -33,7 +33,7 @@ async def start_private(message: types.Message, admin_repo: AdminRepository):
             "• /unban - убрать из ЧС\n"
             "• /black - занести в ЧС всех чатов\n"
             "• /blacklist - посмотреть ЧС\n"
-            "• /welcome <text> - изменить приветствие\n"
+            "• /welcome &lt;text&gt; - изменить приветствие\n"
             "• /admin - добавить админа (ответом)\n"
             "• /unadmin - убрать админа (ответом)\n"
             "• /json - получить JSON сообщения\n"

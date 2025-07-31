@@ -1,5 +1,6 @@
 from aiogram import types, Router, Bot
 from aiogram.filters import Command
+from app.presentation.telegram.middlewares import chat_type as chat_type_middlewares
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +16,13 @@ from app.infrastructure.db.repositories import (
 )
 
 
+
 router = Router()
+group_router = Router()
+group_router.message.middleware(
+    chat_type_middlewares.ChatTypeMiddleware(["group", "supergroup"])
+)
+router.include_router(group_router)
 
 
 def reply_required_error(action: str) -> str:
@@ -28,7 +35,7 @@ def is_user_check_error() -> str:
     return "🚫 Это не пользователь или что-то пошло не так."
 
 
-@router.message(Command("mute", prefix="!/"))
+@group_router.message(Command("mute", prefix="!/"))
 async def mute_user(message: types.Message, bot: Bot):
     # Ensure command is used as a reply
     if not message.reply_to_message:
@@ -86,7 +93,7 @@ async def mute_user(message: types.Message, bot: Bot):
         logger.error(f"Error while muting user: {err}")
 
 
-@router.message(Command("unmute", prefix="!/"))
+@group_router.message(Command("unmute", prefix="!/"))
 async def unmute_member(message: types.Message):
     if not message.reply_to_message:
         await message.answer(reply_required_error("размутить"))
@@ -115,7 +122,7 @@ async def unmute_member(message: types.Message):
         await message.answer(f"Произошла ошибка:\n\n{err}")
 
 
-@router.message(Command("ban", prefix="!/"))
+@group_router.message(Command("ban", prefix="!/"))
 async def ban_user(message: types.Message, bot: Bot):
     if not message.reply_to_message:
         await message.answer(reply_required_error("забанить"))
@@ -136,7 +143,7 @@ async def ban_user(message: types.Message, bot: Bot):
     await message.delete()
 
 
-@router.message(Command("unban", prefix="!/"))
+@group_router.message(Command("unban", prefix="!/"))
 async def unban_user(message: types.Message, bot: Bot):
     if not message.reply_to_message:
         await message.answer(reply_required_error("разбанить"))
@@ -157,7 +164,7 @@ async def unban_user(message: types.Message, bot: Bot):
     await message.delete()
 
 
-@router.message(Command("black", prefix="!/"))
+@group_router.message(Command("black", prefix="!/"))
 async def full_ban(message: types.Message, bot: Bot, message_repo: MessageRepository, db: AsyncSession):
     if not message.reply_to_message:
         await message.answer(reply_required_error("добавить в черный список"))
@@ -196,7 +203,7 @@ async def full_ban(message: types.Message, bot: Bot, message_repo: MessageReposi
     await message.delete()
 
 
-@router.message(Command("spam", prefix="!/"))
+@group_router.message(Command("spam", prefix="!/"))
 async def label_spam(message: types.Message, message_repo: MessageRepository, db: AsyncSession, bot: Bot):
     if not message.reply_to_message:
         answer = await message.answer(reply_required_error("пометить как спам"))
@@ -234,6 +241,7 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, db
     await message.delete()
 
 
+@group_router.message(Command("welcome", prefix="!/"))
 async def welcome_change(message: types.Message, chat_repo: ChatRepository):
     welcome_message = message.text.partition(" ")[2]
     await chat_repo.update_welcome_message(message.chat.id, welcome_message)
@@ -242,7 +250,7 @@ async def welcome_change(message: types.Message, chat_repo: ChatRepository):
     await message.delete()
 
 
-@router.callback_query(BlacklistConfirm.filter())
+@group_router.callback_query(BlacklistConfirm.filter())
 async def process_blacklist_confirm(
     callback: types.CallbackQuery,
     callback_data: BlacklistConfirm,
@@ -277,7 +285,7 @@ async def process_blacklist_confirm(
     await callback.answer()
 
 
-@router.callback_query(lambda c: c.data == "cancel_blacklist")
+@group_router.callback_query(lambda c: c.data == "cancel_blacklist")
 async def process_blacklist_cancel(callback: types.CallbackQuery):
     await callback.message.edit_text("Действие отменено")
     await callback.answer()
@@ -309,7 +317,11 @@ async def unblock_user_callback(
 ):
     user_id = callback_data.user_id
     await moderation_services.remove_from_blacklist(db, bot, user_id)
-    member = await bot.get_chat_member(callback.message.chat.id, user_id)
-    user_identifier = member.user.username or member.user.first_name or str(member.user.id)
+    try:
+        member = await bot.get_chat_member(callback.message.chat.id, user_id)
+        user = member.user
+    except Exception:
+        user = await bot.get_chat(user_id)
+    user_identifier = user.username or user.first_name or str(user.id)
     await callback.message.edit_text(f"Пользователь {user_identifier} разблокирован")
     await callback.answer()
