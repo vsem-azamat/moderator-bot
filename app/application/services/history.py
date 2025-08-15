@@ -1,4 +1,5 @@
 from aiogram import types
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.infrastructure.db.repositories import (
     get_chat_repository,
@@ -7,7 +8,7 @@ from app.infrastructure.db.repositories import (
 )
 
 
-async def save_message(db, message: types.Message) -> None:
+async def save_message(db: AsyncSession, message: types.Message) -> None:
     chat_id = message.chat.id
     user_id = message.from_user.id
     message_id = message.message_id
@@ -18,7 +19,7 @@ async def save_message(db, message: types.Message) -> None:
     await message_repo.add_message(chat_id, user_id, message_id, message_text, message_info)
 
 
-async def merge_user(db, user: types.User) -> None:
+async def merge_user(db: AsyncSession, user: types.User) -> None:
     user_repo = get_user_repository(db)
     await user_repo.merge_user(
         id_tg=user.id,
@@ -28,7 +29,7 @@ async def merge_user(db, user: types.User) -> None:
     )
 
 
-async def merge_chat(db, chat: types.Chat) -> None:
+async def merge_chat(db: AsyncSession, chat: types.Chat) -> None:
     chat_repo = get_chat_repository(db)
     await chat_repo.merge_chat(
         id_tg_chat=chat.id,

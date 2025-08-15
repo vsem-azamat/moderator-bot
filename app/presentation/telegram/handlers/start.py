@@ -11,7 +11,7 @@ router = Router()
 
 
 @router.message(Command("start", "help", prefix="/!"))
-async def start_private(message: types.Message, admin_repo: AdminRepository):
+async def start_private(message: types.Message, admin_repo: AdminRepository) -> None:
     text = (
         "<b>🤖 Привет!</b>\n"
         "Я модерирую чаты по Чехии!\n\n"
@@ -49,7 +49,7 @@ async def start_private(message: types.Message, admin_repo: AdminRepository):
 
 
 @router.message(Command("chats", prefix="/!"))
-async def get_chats(message: types.Message, db: AsyncSession):
+async def get_chats(message: types.Message, db: AsyncSession) -> None:
     text = "<b>Студенческие чаты:</b>\n\nПожалуйста, соблюдайте правила!\n\n"
     builder = await buttons_service.get_chat_buttons(db)
     bot_message = await message.answer(text, reply_markup=builder.as_markup())
@@ -58,7 +58,7 @@ async def get_chats(message: types.Message, db: AsyncSession):
 
 
 @router.message(Command("contacts", prefix="/!"))
-async def get_contacts(message: types.Message):
+async def get_contacts(message: types.Message) -> None:
     text = "📞 <b>Контакты:</b>\n\n• 📧 <b>Сотрудничество:</b> @czech_media_admin\n• 🧑🏿‍💻 <b>Dev:</b> @vsem_azamat"
     bot_message = await message.answer(text)
     await message.delete()

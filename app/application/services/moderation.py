@@ -1,5 +1,4 @@
 import asyncio
-from typing import cast
 
 from aiogram import Bot
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,8 +34,8 @@ async def add_to_blacklist(
                 for message in user_messages:
                     try:
                         await bot.delete_message(
-                            chat_id=cast("int", message.chat_id),
-                            message_id=cast("int", message.message_id),
+                            chat_id=message.chat_id,
+                            message_id=message.message_id,
                         )
                     except Exception as err:
                         logger.warning(
@@ -50,7 +49,7 @@ async def add_to_blacklist(
                 f"Error: {err}"
             )
 
-    tasks = [ban_user(cast("int", chat.id)) for chat in await chat_repo.get_chats()]
+    tasks = [ban_user(chat.id) for chat in await chat_repo.get_chats()]
     await asyncio.gather(*tasks)
 
 
@@ -66,5 +65,5 @@ async def remove_from_blacklist(db: AsyncSession, bot: Bot, id_tg: int) -> None:
         except Exception as err:
             logger.warning(f"Failed to unban user {id_tg} in chat {chat_id}.\nError: {err}")
 
-    tasks = [unban_user(cast("int", chat.id)) for chat in await chat_repo.get_chats()]
+    tasks = [unban_user(chat.id) for chat in await chat_repo.get_chats()]
     await asyncio.gather(*tasks)

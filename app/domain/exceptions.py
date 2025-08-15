@@ -1,6 +1,8 @@
 """Domain exceptions for the moderation bot."""
 # ruff: noqa: N818
 
+from typing import Any
+
 
 class DomainError(Exception):
     """Base domain exception."""
@@ -91,7 +93,7 @@ class ConfigurationException(DomainError):
 class ValidationException(DomainError):
     """Raised when validation fails."""
 
-    def __init__(self, field: str, value: any, message: str):
+    def __init__(self, field: str, value: Any, message: str):
         self.field = field
         self.value = value
         super().__init__(f"Validation error for {field}='{value}': {message}")

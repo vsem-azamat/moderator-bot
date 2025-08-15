@@ -8,7 +8,7 @@ groups_router = Router()
 
 
 @groups_router.message(Command("report", prefix="!/"))
-async def report_user(message: types.Message, bot: Bot):
+async def report_user(message: types.Message, bot: Bot) -> None:
     if not message.reply_to_message:
         answer = await message.answer("Эту команду нужно использовать в ответ на сообщение.")
         await other.sleep_and_delete(answer, 10)

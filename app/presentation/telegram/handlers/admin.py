@@ -8,7 +8,7 @@ admin_router = Router()
 
 
 @admin_router.message(Command("admin", prefix="!/"))
-async def new_admin(message: types.Message, admin_repo: AdminRepository):
+async def new_admin(message: types.Message, admin_repo: AdminRepository) -> None:
     if not message.reply_to_message or not message.reply_to_message.from_user:
         await message.answer("Используйте эту команду в ответ на сообщение пользователя.")
         return
@@ -22,7 +22,7 @@ async def new_admin(message: types.Message, admin_repo: AdminRepository):
 
 
 @admin_router.message(Command("unadmin", prefix="!/"))
-async def delete_admin(message: types.Message, admin_repo: AdminRepository):
+async def delete_admin(message: types.Message, admin_repo: AdminRepository) -> None:
     if not message.reply_to_message or not message.reply_to_message.from_user:
         await message.answer("Используйте эту команду в ответ на сообщение пользователя.")
         return

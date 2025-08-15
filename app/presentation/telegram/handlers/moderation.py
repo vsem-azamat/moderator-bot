@@ -27,7 +27,7 @@ def is_user_check_error() -> str:
 
 
 @moderation_router.message(Command("mute", prefix="!/"))
-async def mute_user(message: types.Message, bot: Bot):
+async def mute_user(message: types.Message, bot: Bot) -> None:
     # Ensure command is used as a reply
     if not message.reply_to_message:
         await message.answer(reply_required_error("замутить"))
@@ -88,7 +88,7 @@ async def mute_user(message: types.Message, bot: Bot):
 
 
 @moderation_router.message(Command("unmute", prefix="!/"))
-async def unmute_user(message: types.Message):
+async def unmute_user(message: types.Message) -> None:
     if not message.reply_to_message:
         await message.answer(reply_required_error("размутить"))
         await message.delete()
@@ -117,7 +117,7 @@ async def unmute_user(message: types.Message):
 
 
 @moderation_router.message(Command("ban", prefix="!/"))
-async def ban_user(message: types.Message, bot: Bot):
+async def ban_user(message: types.Message, bot: Bot) -> None:
     if not message.reply_to_message:
         await message.answer(reply_required_error("забанить"))
         return
@@ -138,7 +138,7 @@ async def ban_user(message: types.Message, bot: Bot):
 
 
 @moderation_router.message(Command("unban", prefix="!/"))
-async def unban_user(message: types.Message, bot: Bot):
+async def unban_user(message: types.Message, bot: Bot) -> None:
     if not message.reply_to_message:
         await message.answer(reply_required_error("разбанить"))
         return
@@ -159,7 +159,7 @@ async def unban_user(message: types.Message, bot: Bot):
 
 
 @moderation_router.message(Command("black", prefix="!/"))
-async def full_ban(message: types.Message, message_repo: MessageRepository, db: AsyncSession):
+async def full_ban(message: types.Message, message_repo: MessageRepository, db: AsyncSession) -> None:
     if not message.reply_to_message:
         await message.answer(reply_required_error("добавить в черный список"))
         return
@@ -201,7 +201,7 @@ async def full_ban(message: types.Message, message_repo: MessageRepository, db: 
 
 
 @moderation_router.message(Command("spam", prefix="!/"))
-async def label_spam(message: types.Message, message_repo: MessageRepository, db: AsyncSession):
+async def label_spam(message: types.Message, message_repo: MessageRepository, db: AsyncSession) -> None:
     if not message.reply_to_message:
         answer = await message.answer(reply_required_error("пометить как спам"))
         await message.delete()
@@ -242,7 +242,7 @@ async def label_spam(message: types.Message, message_repo: MessageRepository, db
 
 
 @moderation_router.message(Command("welcome", prefix="!/"))
-async def welcome_change(message: types.Message, chat_repo: ChatRepository):
+async def welcome_change(message: types.Message, chat_repo: ChatRepository) -> None:
     if not message.text:
         await message.answer("Сообщение не может быть пустым.")
         return
@@ -260,7 +260,7 @@ async def process_blacklist_confirm(
     bot: Bot,
     db: AsyncSession,
     message_repo: MessageRepository,
-):
+) -> None:
     user_id = callback_data.user_id
     chat_id = callback_data.chat_id
     message_id = callback_data.message_id
@@ -293,14 +293,14 @@ async def process_blacklist_confirm(
 
 
 @moderation_router.callback_query(lambda c: c.data == "cancel_blacklist")
-async def process_blacklist_cancel(callback: types.CallbackQuery):
+async def process_blacklist_cancel(callback: types.CallbackQuery) -> None:
     if callback.message and isinstance(callback.message, types.Message):
         await callback.message.edit_text("Действие отменено")
     await callback.answer()
 
 
 @moderation_router.message(Command("blacklist", prefix="!/"))
-async def show_blacklist(message: types.Message, user_repo: UserRepository):
+async def show_blacklist(message: types.Message, user_repo: UserRepository) -> None:
     blocked_users = await user_repo.get_blocked_users()
     if not blocked_users:
         await message.answer("Чёрный список пуст")
@@ -322,7 +322,7 @@ async def unblock_user_callback(
     callback_data: UnblockUser,
     bot: Bot,
     db: AsyncSession,
-):
+) -> None:
     user_id = callback_data.user_id
     await moderation_services.remove_from_blacklist(db, bot, user_id)
     try:

@@ -1,4 +1,5 @@
 import datetime
+from typing import Any
 
 from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -206,7 +207,7 @@ class Message(Base):
     user_id: Mapped[int] = mapped_column(BigInteger)
     message_id: Mapped[int] = mapped_column(BigInteger)
     message: Mapped[str | None] = mapped_column(String, nullable=True)
-    message_info: Mapped[dict] = mapped_column(JSON)
+    message_info: Mapped[dict[str, Any]] = mapped_column(JSON)
     timestamp: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.now)
     spam: Mapped[bool] = mapped_column(Boolean, default=False)
 
@@ -216,7 +217,7 @@ class Message(Base):
         user_id: int,
         message_id: int,
         message: str | None = None,
-        message_info: dict | None = None,
+        message_info: dict[str, Any] | None = None,
         spam: bool = False,
     ) -> None:
         self.chat_id = chat_id

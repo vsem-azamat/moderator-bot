@@ -9,10 +9,10 @@ router = Router()
 
 
 @router.chat_member(ChatTypeFilter(["group", "supergroup"]), ChatMemberUpdatedFilter(member_status_changed=MEMBER))
-async def user_joined(_event: ChatMemberUpdated):
+async def user_joined(_event: ChatMemberUpdated) -> None:
     logger.info("User joined")
 
 
 @router.chat_member(ChatTypeFilter(["group", "supergroup"]), ChatMemberUpdatedFilter(member_status_changed=LEFT))
-async def user_left(_event: ChatMemberUpdated):
+async def user_left(_event: ChatMemberUpdated) -> None:
     logger.info("User left")

@@ -1,5 +1,6 @@
 import os
 from collections.abc import AsyncGenerator
+from typing import Any
 
 # Setup test environment variables BEFORE any application imports
 # This ensures configuration is available when modules are loaded
@@ -108,7 +109,7 @@ def mock_bot() -> AsyncMock:
 
 
 @pytest.fixture
-def sample_user_data() -> dict:
+def sample_user_data() -> dict[str, Any]:
     """Sample user data for tests."""
     return {
         "id": 123456789,
@@ -119,7 +120,7 @@ def sample_user_data() -> dict:
 
 
 @pytest.fixture
-def sample_chat_data() -> dict:
+def sample_chat_data() -> dict[str, Any]:
     """Sample chat data for tests."""
     return {
         "id": -1001234567890,

@@ -59,7 +59,7 @@ class MuteDuration:
         self.time = time
         self.unit = unit
 
-    def formatted_until_date(self):
+    def formatted_until_date(self) -> str:
         return self.until_date.strftime("%Y-%m-%d %H:%M:%S")
 
 

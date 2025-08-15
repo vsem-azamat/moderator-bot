@@ -138,7 +138,7 @@ class TestBlacklistMiddleware:
 
         message = telegram_factory.create_message(user=user, chat=chat)
 
-        data = {}  # No user_service
+        data: dict[str, Any] = {}  # No user_service
 
         # Act - Should not raise exception
         await blacklist_middleware(mock_handler, message, data)

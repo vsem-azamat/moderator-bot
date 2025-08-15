@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class BlacklistMiddleware(BaseMiddleware):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     async def __call__(

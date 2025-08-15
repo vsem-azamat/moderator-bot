@@ -3,7 +3,7 @@ from typing import Any
 
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.infrastructure.db.repositories import (
     get_admin_repository,
@@ -15,7 +15,7 @@ from app.infrastructure.db.repositories import (
 
 
 class DependenciesMiddleware(BaseMiddleware):
-    def __init__(self, session_pool: async_sessionmaker, bot: Bot):
+    def __init__(self, session_pool: async_sessionmaker[AsyncSession], bot: Bot):
         super().__init__()
         self.session_pool = session_pool
         self.bot = bot

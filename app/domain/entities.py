@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 
 @dataclass
@@ -101,7 +102,7 @@ class MessageEntity:
     user_id: int
     message_id: int
     content: str | None = None
-    metadata: dict | None = None
+    metadata: dict[str, Any] | None = None
     timestamp: datetime | None = None
     is_spam: bool = False
 
