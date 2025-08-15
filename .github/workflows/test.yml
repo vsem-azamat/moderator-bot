@@ -1,0 +1,185 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_moderator_bot
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        enable-cache: true
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+
+    - name: Run linting with ruff
+      run: |
+        uv run ruff check app tests
+
+    - name: Run formatting check with ruff
+      run: |
+        uv run ruff format --check app tests
+
+    - name: Run type checking with mypy
+      run: |
+        uv run mypy app tests
+
+    - name: Run unit tests
+      run: |
+        uv run pytest tests/unit -v --tb=short
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: test_moderator_bot
+        DB_HOST: localhost
+        DB_PORT: 5432
+        BOT_TOKEN: "test_token"
+        ADMIN_SUPER_ADMINS: "123456789"
+
+    - name: Run integration tests
+      run: |
+        uv run pytest tests/integration -v --tb=short
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: test_moderator_bot
+        DB_HOST: localhost
+        DB_PORT: 5432
+        BOT_TOKEN: "test_token"
+        ADMIN_SUPER_ADMINS: "123456789"
+
+    - name: Run end-to-end tests
+      run: |
+        uv run pytest tests/e2e -v --tb=short
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: test_moderator_bot
+        DB_HOST: localhost
+        DB_PORT: 5432
+        BOT_TOKEN: "test_token"
+        ADMIN_SUPER_ADMINS: "123456789"
+
+    - name: Run tests with coverage
+      run: |
+        uv run pytest --cov=app --cov-report=xml --cov-report=html --cov-fail-under=80
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: test_moderator_bot
+        DB_HOST: localhost
+        DB_PORT: 5432
+        BOT_TOKEN: "test_token"
+        ADMIN_SUPER_ADMINS: "123456789"
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: success()
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Upload coverage reports as artifact
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: coverage-reports
+        path: htmlcov/
+
+  performance-tests:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_moderator_bot_perf
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v2
+      with:
+        enable-cache: true
+
+    - name: Install dependencies
+      run: |
+        uv sync --dev
+        uv add psutil  # For memory monitoring
+
+    - name: Run performance tests
+      run: |
+        uv run pytest tests/performance -v --tb=short -m "performance and not slow"
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: test_moderator_bot_perf
+        DB_HOST: localhost
+        DB_PORT: 5432
+        BOT_TOKEN: "test_token"
+        ADMIN_SUPER_ADMINS: "123456789"
+
+    - name: Run slow performance tests
+      run: |
+        uv run pytest tests/performance -v --tb=short -m "slow"
+      env:
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: test_moderator_bot_perf
+        DB_HOST: localhost
+        DB_PORT: 5432
+        BOT_TOKEN: "test_token"
+        ADMIN_SUPER_ADMINS: "123456789"
+      continue-on-error: true  # Don't fail CI if performance tests are slow

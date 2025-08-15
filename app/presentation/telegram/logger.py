@@ -1,12 +1,11 @@
-import os
 import logging
 import logging.config
-
+from pathlib import Path
 
 log_dir = "logs"
-log_file = os.path.join(log_dir, "bot.log")
+log_file = Path(log_dir) / "bot.log"
 
-os.makedirs(log_dir, exist_ok=True)
+Path(log_dir).mkdir(exist_ok=True)
 
 LOGGING_CONFIG = {
     "version": 1,

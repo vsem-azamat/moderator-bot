@@ -1,21 +1,24 @@
-from typing import Callable, Awaitable, Dict, Any
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware, Bot, types
 from aiogram.types import TelegramObject
 
 from app.presentation.telegram.logger import logger
-from app.infrastructure.db.repositories import UserRepository
+
+if TYPE_CHECKING:
+    from app.infrastructure.db.repositories import UserRepository
 
 
 class BlacklistMiddleware(BaseMiddleware):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         bot: Bot = data["bot"]
         user_repo: UserRepository = data["user_repo"]
@@ -27,6 +30,6 @@ class BlacklistMiddleware(BaseMiddleware):
                 await event.delete()
             except Exception as e:
                 logger.error(f"Failed to ban or delete message for user {event.from_user.id}: {e}")
-            return  # Stop further handler processing for blacklisted user
+            return None  # Stop further handler processing for blacklisted user
 
         return await handler(event, data)

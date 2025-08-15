@@ -1,7 +1,7 @@
-from .dependencies import DependenciesMiddleware
 from .black_list import BlacklistMiddleware
-from .managed_chats import ManagedChatsMiddleware
+from .dependencies import DependenciesMiddleware
 from .history import HistoryMiddleware
+from .managed_chats import ManagedChatsMiddleware
 
 __all__ = [
     "DependenciesMiddleware",

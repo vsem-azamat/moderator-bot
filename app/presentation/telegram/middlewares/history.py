@@ -1,20 +1,24 @@
-from typing import Callable, Awaitable, Dict, Any
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware, types
 from aiogram.types import TelegramObject
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.services import history as history_service
+from app.application.services import spam as spam_service
 from app.presentation.telegram.logger import logger
 from app.presentation.telegram.utils import other
-from app.application.services import history as history_service, spam as spam_service
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class HistoryMiddleware(BaseMiddleware):
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         db: AsyncSession = data["db"]
         if isinstance(event, types.Update) and isinstance(event.message, types.Message):

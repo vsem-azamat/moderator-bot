@@ -1,29 +1,30 @@
-from typing import Callable, Awaitable, Dict, Any
+from collections.abc import Awaitable, Callable
+from typing import Any
 
-from aiogram import Bot, BaseMiddleware
+from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.infrastructure.db.repositories import (
-    get_chat_repository,
-    get_user_repository,
-    get_chat_link_repository,
     get_admin_repository,
+    get_chat_link_repository,
+    get_chat_repository,
     get_message_repository,
+    get_user_repository,
 )
 
 
 class DependenciesMiddleware(BaseMiddleware):
-    def __init__(self, session_pool: async_sessionmaker, bot: Bot):
+    def __init__(self, session_pool: async_sessionmaker[AsyncSession], bot: Bot):
         super().__init__()
         self.session_pool = session_pool
         self.bot = bot
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         data["bot"] = self.bot
         async with self.session_pool() as session:

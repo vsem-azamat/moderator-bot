@@ -1,6 +1,6 @@
-import asyncio
+"""Bot entry point."""
 
-# Run bot
-from app.presentation.telegram.bot import main
+from app.presentation.telegram.bot import run_bot
 
-asyncio.run(main())
+if __name__ == "__main__":
+    run_bot()
