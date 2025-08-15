@@ -1,11 +1,14 @@
-from typing import Callable, Awaitable, Dict, Any
+from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware, Bot, types
 from aiogram.types import TelegramObject
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import cnfg
 from app.application.services import history as history_service
+from app.core.config import settings
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ManagedChatsMiddleware(BaseMiddleware):
@@ -14,9 +17,9 @@ class ManagedChatsMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         bot: Bot = data["bot"]
         db: AsyncSession = data["db"]
@@ -28,11 +31,11 @@ class ManagedChatsMiddleware(BaseMiddleware):
             message = event.message
             chat_admins = await bot.get_chat_administrators(message.chat.id)
             chat_admins_id = {admin.user.id for admin in chat_admins}
-            if any(super_admin in chat_admins_id for super_admin in cnfg.SUPER_ADMINS):
+            if any(super_admin in chat_admins_id for super_admin in settings.admin.super_admins):
                 await history_service.merge_chat(db, message.chat)
                 return await handler(event, data)
 
             # If at least no one super admin in chat, then leave chat
             await bot.leave_chat(message.chat.id)
-            return
+            return None
         return await handler(event, data)

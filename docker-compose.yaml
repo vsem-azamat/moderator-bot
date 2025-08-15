@@ -3,16 +3,15 @@ services:
     build: .
     env_file:
       - .env
-    volumes:
-      - .:/app
     depends_on:
       - db
     environment:
       - PYTHONUNBUFFERED=1
+    restart: unless-stopped
     command: >
-      bash -c "
+      sh -c "
       ./scripts/wait_for_postgres.sh &&
-      alembic upgrade head &&
+      uv run alembic upgrade head &&
       uv run -m app.presentation.telegram
       "
 
@@ -29,15 +28,6 @@ services:
     volumes:
       - moderator-bot-db:/var/lib/postgresql/data
 
-  adminer:
-    image: adminer
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - "${ADMINER_PORT}:8080"
-    depends_on:
-      - db
 
 volumes:
   moderator-bot-db:

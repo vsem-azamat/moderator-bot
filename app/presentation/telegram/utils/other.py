@@ -1,9 +1,9 @@
-import re
 import asyncio
 import datetime
-from pytz import timezone
+import re
+
 from aiogram import types
-from typing import Union
+from pytz import timezone
 
 
 async def sleep_and_delete(message: types.Message, seconds: int = 60) -> None:
@@ -17,13 +17,12 @@ async def get_user_mention(user: types.User) -> str:
     return user.mention_html()
 
 
-async def get_chat_mention(tg_object: Union[types.Message, types.Chat]) -> str:
+async def get_chat_mention(tg_object: types.Message | types.Chat) -> str:
     """Return HTML link to a chat or its message."""
     chat_link = await get_chat_link(tg_object)
     if isinstance(tg_object, types.Message):
         return f'<a href="{chat_link}">{tg_object.chat.title}</a>'
-    else:
-        return f'<a href="{chat_link}">{tg_object.title}</a>'
+    return f'<a href="{chat_link}">{tg_object.title}</a>'
 
 
 async def get_message_mention(message: types.Message) -> str:
@@ -31,34 +30,27 @@ async def get_message_mention(message: types.Message) -> str:
     return f'<a href="{chat_link}">Cообщение</a>'
 
 
-async def get_message_link(tg_object: Union[types.Message, types.Chat]) -> str:
+async def get_message_link(tg_object: types.Message | types.Chat) -> str:
     """Generate a direct link to a message."""
-    if isinstance(tg_object, types.Message):
-        chat = tg_object.chat
-    else:
-        chat = tg_object
+    chat = tg_object.chat if isinstance(tg_object, types.Message) else tg_object
 
     if chat.username:  # Public chat or channel
         return f"https://t.me/{chat.username}/{tg_object.message_id}"
 
-    elif chat.type in ["group", "supergroup"]:  # Private group without username
+    if chat.type in ["group", "supergroup"]:  # Private group without username
         return f"https://t.me/c/{str(chat.id)[4:]}/{tg_object.message_id}"
 
-    else:  # Private 1-on-1 chat
-        return f"https://t.me/{chat.id}/{tg_object.message_id}"
+    # Private 1-on-1 chat
+    return f"https://t.me/{chat.id}/{tg_object.message_id}"
 
 
-async def get_chat_link(tg_object: Union[types.Message, types.Chat]) -> str:
+async def get_chat_link(tg_object: types.Message | types.Chat) -> str:
     """Return a direct link to a chat."""
-    if isinstance(tg_object, types.Message):
-        chat = tg_object.chat
-    else:
-        chat = tg_object
+    chat = tg_object.chat if isinstance(tg_object, types.Message) else tg_object
 
     if chat.username:
         return f"https://t.me/{chat.username}"
-    else:
-        return f"https://t.me/c/{str(chat.id)[4:]}"
+    return f"https://t.me/c/{str(chat.id)[4:]}"
 
 
 class MuteDuration:

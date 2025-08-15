@@ -1,6 +1,7 @@
-from typing import Sequence
+from collections.abc import Sequence
+
+from sqlalchemy import func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import func, insert, update, select
 from sqlalchemy.sql.expression import and_
 
 from app.domain.models import Message
@@ -30,7 +31,9 @@ class MessageRepository:
         await self.db.commit()
 
     async def label_spam(self, chat_id: int, message_id: int) -> None:
-        query = update(Message).where(and_(Message.chat_id == chat_id, Message.message_id == message_id)).values(spam=True)
+        query = (
+            update(Message).where(and_(Message.chat_id == chat_id, Message.message_id == message_id)).values(spam=True)
+        )
         await self.db.execute(query)
         await self.db.commit()
 
@@ -58,7 +61,7 @@ class MessageRepository:
         return count is not None and count > 0
 
     async def is_similar_spam_message(self, message: str) -> bool:
-        query = select(func.count()).where(Message.message == message, Message.spam == True)
+        query = select(func.count()).where(Message.message == message, Message.spam)
         result = await self.db.execute(query)
         count = result.scalar()
         return count is not None and count > 0

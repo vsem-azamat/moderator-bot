@@ -1,9 +1,9 @@
 from aiogram import types
 
 from app.infrastructure.db.repositories import (
+    get_chat_repository,
     get_message_repository,
     get_user_repository,
-    get_chat_repository,
 )
 
 

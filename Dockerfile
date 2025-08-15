@@ -1,18 +1,15 @@
-FROM python:3.12-slim
+FROM ghcr.io/astral-sh/uv:alpine
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install uv for dependency management
-RUN pip install --no-cache-dir uv
+# Install PostgreSQL client and build dependencies
+RUN apk add --no-cache postgresql-client gcc python3-dev musl-dev linux-headers
 
 # Copy project files
 COPY . .
 
 # Install project dependencies using uv
-RUN uv pip install --system .
+RUN uv sync
 
-CMD ["python3", "-m", "app.presentation.telegram"]
+# Use uv to run the application
+CMD ["uv", "run", "-m", "app.presentation.telegram"]
