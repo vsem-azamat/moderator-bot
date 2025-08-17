@@ -56,7 +56,7 @@ class UserRepository(IUserRepository):
         if identifier.startswith("@"):
             identifier = identifier[1:]
 
-            # Try to find by user_id if identifier is numeric
+        # Try to find by user_id if identifier is numeric
         if identifier.isdigit():
             user_id = int(identifier)
             result = await self.db.execute(select(User).filter(User.id == user_id, User.blocked))
