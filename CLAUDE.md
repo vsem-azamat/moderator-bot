@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a modern Telegram bot for moderating educational chats in the Czech Republic. The bot provides comprehensive moderation features including muting, banning, blacklisting users, welcome messages, and message history tracking. Built with Python using aiogram for Telegram integration and follows a clean Domain-Driven Design (DDD) architecture with modern best practices.
 
+The project now includes a **React TypeScript web application** that provides an admin panel accessible via Telegram's WebApp API, offering a modern web interface for bot management and analytics.
+
 ## Technology Stack
 
 - **Python 3.12+** - Modern Python with full type hints
@@ -17,6 +19,10 @@ This is a modern Telegram bot for moderating educational chats in the Czech Repu
 - **pytest** - Testing framework with async support
 - **ruff** - Fast Python linter and formatter
 - **uv** - Modern Python package manager
+- **React 19+** - Modern frontend framework for the web admin panel
+- **TypeScript** - Type-safe JavaScript for web development
+- **Vite** - Fast build tool and development server
+- **Telegram WebApp SDK** - Integration with Telegram's WebApp API
 
 ## Development Setup
 
@@ -37,10 +43,16 @@ cp .env.example .env
 ## Running the Application
 
 ### Development Mode
-Run with Docker Compose (includes PostgreSQL, hot reload, and Adminer):
+Run with Docker Compose (includes PostgreSQL, React webapp, hot reload, and Adminer):
 ```bash
 docker-compose -f docker-compose.dev.yaml up --build
 ```
+
+This will start:
+- **Bot service** - Telegram bot with hot reload
+- **WebApp service** - React development server on port 3000
+- **PostgreSQL** - Database server
+- **Adminer** - Database administration UI on port 8080
 
 ### Production Mode
 ```bash
@@ -168,6 +180,10 @@ user_service = UserService(user_repo)
 - `/chats` - Show educational chat links
 - `/start` - Bot introduction
 
+### WebApp Commands (Admins only)
+- `/webapp` - Open React-based admin panel via Telegram WebApp
+- `/help_webapp` - Show help for webapp functionality
+
 ## Testing Strategy
 
 ### Framework
@@ -230,25 +246,88 @@ See `.env.example` for all available configuration options. Key variables:
 ```bash
 # Bot
 BOT_TOKEN=your_bot_token_here
+BOT_WEBHOOK_URL=
+BOT_WEBHOOK_SECRET=
+BOT_USE_WEBHOOK=false
 ADMIN_SUPER_ADMINS=123456789,987654321
+ADMIN_REPORT_CHAT_ID=
 
 # Database
 DB_USER=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=your_password_here
 DB_NAME=moderator_bot
 
 # Application
 DEBUG=false
-ENVIRONMENT=production
+ENVIRONMENT=development
+TIMEZONE=UTC
 LOG_LEVEL=INFO
+LOG_FORMAT=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+LOG_FILE_PATH=logs/bot.log
+LOG_MAX_BYTES=10485760
+LOG_BACKUP_COUNT=5
+
+# Web App Configuration
+WEBAPP_URL=http://localhost:3000
+WEBAPP_API_SECRET=your_webapp_secret_key_here
+
+# Docker Configuration (for development)
+WEBAPP_PORT=3000
+ADMINER_PORT=8080
 ```
+
+## Web Application (React Admin Panel)
+
+### Overview
+The project includes a modern React TypeScript web application that provides an admin interface accessible through Telegram's WebApp API. This allows administrators to manage the bot through a native web interface within Telegram.
+
+### Technology Stack
+- **React 19+** with TypeScript
+- **Vite** for fast development and building
+- **@telegram-apps/sdk-react** for Telegram WebApp integration
+- **@tanstack/react-query** for data fetching
+- **Axios** for HTTP requests
+- **ESLint** with TypeScript support
+
+### Features
+- **Telegram Integration** - Native Telegram WebApp experience
+- **Theme Support** - Automatically adapts to user's Telegram theme
+- **User Information Display** - Shows detailed user info from Telegram
+- **Debug Interface** - Development tools for debugging Telegram integration
+- **Responsive Design** - Works on mobile and desktop
+
+### Development
+```bash
+# Navigate to webapp directory
+cd webapp
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Lint code
+npm run lint
+```
+
+### Access
+Administrators can access the webapp by:
+1. Sending `/webapp` command to the bot
+2. Clicking the "🎛️ Открыть админ панель" button
+3. The webapp opens within Telegram's native WebApp interface
 
 ## Docker Development
 
 The development setup includes:
+- **Bot service** - Python bot with hot reload
+- **WebApp service** - React development server (http://localhost:3000)
 - **PostgreSQL** - Database
 - **Adminer** - Database administration UI (http://localhost:8080)
-- **Hot reload** - Automatic restart on code changes
+- **Hot reload** - Automatic restart on code changes for both bot and webapp
 - **Volume mounts** - Live code editing
 
 ## Migration Guide
@@ -261,6 +340,18 @@ When migrating from older versions:
 4. **Update imports**: Domain entities are now in `app/domain/entities.py`
 5. **Update tests**: Use new fixtures from `conftest.py`
 
+## WebApp Security
+
+### Authentication
+- **Super Admin Only** - WebApp access restricted to configured super admins
+- **Telegram Validation** - Uses Telegram's built-in user validation
+- **API Secret** - Configurable secret for webapp-bot communication
+
+### Development vs Production
+- **Development** - Runs on localhost with hot reload
+- **Production** - Served through nginx with proper security headers
+- **HTTPS Required** - Telegram WebApps require HTTPS in production
+
 ## Performance Considerations
 
 - **Connection pooling** - Configured for production use
@@ -268,3 +359,5 @@ When migrating from older versions:
 - **Concurrent operations** - Batch operations for multiple chats
 - **Structured logging** - Minimal performance impact
 - **Type hints** - Full mypy compliance for better IDE support
+- **WebApp Optimization** - React app built with Vite for fast loading
+- **Theme Integration** - Native Telegram theme support for better UX
