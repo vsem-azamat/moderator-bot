@@ -380,7 +380,7 @@ async def handle_blacklist_pagination(
 
     try:
         await callback.message.edit_text(text, reply_markup=keyboard.as_markup())
-    except Exception:
+    except (TelegramBadRequest, MessageNotModified):
         # Fallback to sending new message if edit fails
         await callback.message.answer(text, reply_markup=keyboard.as_markup())
 
