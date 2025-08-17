@@ -288,6 +288,6 @@ class TestFilterIntegration:
                     assert result == expected, f"Failed for {filter_instance.__class__.__name__} with {super_admins}"
             else:
                 result = await filter_instance(mock_message)
-                assert (
-                    result == expected
-                ), f"Failed for {filter_instance.__class__.__name__} with {filter_instance.chat_type}"
+                assert result == expected, (
+                    f"Failed for {filter_instance.__class__.__name__} with {filter_instance.chat_type}"
+                )
