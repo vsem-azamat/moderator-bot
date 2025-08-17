@@ -19,8 +19,13 @@ class TestRepositoryPerformance:
 
     async def test_bulk_user_creation_performance(self, engine: AsyncEngine):
         """Test performance of bulk user creation."""
-        # Test with different batch sizes
-        batch_sizes = [10, 50, 100]  # Reduced to avoid session conflicts
+        # Note: Larger batch sizes (>100) were found to cause session conflicts in the test environment.
+        # This is due to limitations in SQLAlchemy's concurrent session handling and the way sessions are
+        # managed during concurrent operations in the test setup (too many simultaneous sessions for SQLite).
+        # As a result, batch sizes are limited here to ensure reliable test execution.
+        # This limitation may affect the ability to measure absolute peak throughput, but relative performance
+        # between sequential and concurrent operations can still be meaningfully compared within these constraints.
+        batch_sizes = [10, 50, 100]
 
         for batch_size in batch_sizes:
             users = UserFactory.create_batch(batch_size)
@@ -114,8 +119,8 @@ class TestRepositoryPerformance:
 
     async def test_blocked_users_query_performance(self, engine: AsyncEngine):
         """Test performance of blocked users query with large dataset."""
-        # Create mix of blocked and normal users (reduced size)
-        total_users = 1000  # Reduced from 10000
+        # Create mix of blocked and normal users (reduced size for test reliability)
+        total_users = 1000  # Reduced from 10000 to avoid session conflicts
         blocked_percentage = 0.1  # 10% blocked
         blocked_count = int(total_users * blocked_percentage)
 
@@ -162,7 +167,7 @@ class TestRepositoryPerformance:
 
     async def test_chat_operations_performance(self, engine: AsyncEngine):
         """Test performance of chat operations."""
-        batch_size = 100  # Reduced from 1000
+        batch_size = 100  # Reduced from 1000 to avoid session conflicts
         chats = ChatFactory.create_batch(batch_size)
 
         session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
@@ -198,8 +203,8 @@ class TestRepositoryPerformance:
 
     async def test_concurrent_mixed_operations_performance(self, engine: AsyncEngine):
         """Test performance of mixed concurrent operations."""
-        # Simulate real-world mixed workload (reduced size)
-        num_operations = 100  # Reduced from 1000
+        # Simulate real-world mixed workload (reduced size for test reliability)
+        num_operations = 100  # Reduced from 1000 to avoid session conflicts
 
         session_factory = async_sessionmaker(bind=engine, expire_on_commit=False)
 
@@ -289,8 +294,8 @@ class TestMemoryUsagePerformance:
         # Measure initial memory
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
-        # Create smaller dataset for memory test
-        batch_size = 1000  # Reduced from 10000
+        # Create smaller dataset for memory test (reduced for test reliability)
+        batch_size = 1000  # Reduced from 10000 to avoid session conflicts
         users = UserFactory.create_batch(batch_size)
 
         # Memory after creating objects

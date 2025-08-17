@@ -2,9 +2,13 @@
 
 import random
 from datetime import datetime
+from typing import Any
 
 from app.domain.entities import AdminEntity, ChatEntity, ChatLinkEntity, MessageEntity, UserEntity
 from app.domain.value_objects import MuteDuration, UserProfile, WelcomeSettings
+
+# Sentinel object for default values in factories
+_DEFAULT = object()
 
 
 class UserFactory:
@@ -13,9 +17,9 @@ class UserFactory:
     @staticmethod
     def create(
         id: int | None = None,
-        username: str | None = "default",
-        first_name: str | None = "default",
-        last_name: str | None = "default",
+        username: str | None | Any = _DEFAULT,
+        first_name: str | None | Any = _DEFAULT,
+        last_name: str | None | Any = _DEFAULT,
         is_verified: bool = True,
         is_blocked: bool = False,
         created_at: datetime | None = None,
@@ -24,9 +28,9 @@ class UserFactory:
         """Create a test user entity."""
         return UserEntity(
             id=id if id is not None else random.randint(100000000, 999999999),
-            username=username if username != "default" else f"testuser{random.randint(1000, 9999)}",
-            first_name=first_name if first_name != "default" else f"Test{random.randint(1, 100)}",
-            last_name=last_name if last_name != "default" else f"User{random.randint(1, 100)}",
+            username=username if username is not _DEFAULT else f"testuser{random.randint(1000, 9999)}",
+            first_name=first_name if first_name is not _DEFAULT else f"Test{random.randint(1, 100)}",
+            last_name=last_name if last_name is not _DEFAULT else f"User{random.randint(1, 100)}",
             is_verified=is_verified,
             is_blocked=is_blocked,
             created_at=created_at if created_at is not None else datetime.now(),
