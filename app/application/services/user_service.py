@@ -85,6 +85,10 @@ class UserService:
         """Get all blocked users."""
         return await self.user_repository.get_blocked_users()
 
+    async def find_blocked_user(self, identifier: str) -> UserEntity | None:
+        """Find blocked user by username or user_id."""
+        return await self.user_repository.find_blocked_user(identifier)
+
     async def is_user_blocked(self, user_id: int) -> bool:
         """Check if user is blocked."""
         user = await self.user_repository.get_by_id(user_id)

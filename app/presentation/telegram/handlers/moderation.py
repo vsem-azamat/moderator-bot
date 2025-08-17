@@ -1,17 +1,24 @@
 from aiogram import Bot, Router, types
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.services import moderation as moderation_services
 from app.application.services import spam as spam_service
+from app.application.services.user_service import UserService
 from app.infrastructure.db.repositories import (
     ChatRepository,
     MessageRepository,
-    UserRepository,
 )
 from app.presentation.telegram.logger import logger
-from app.presentation.telegram.utils import BlacklistConfirm, UnblockUser, other
+from app.presentation.telegram.utils import BlacklistConfirm, BlacklistPagination, UnblockUser, other
+from app.presentation.telegram.utils.blacklist import (
+    build_blacklist_keyboard,
+    build_blacklist_text,
+    build_user_details_keyboard,
+    build_user_details_text,
+)
 
 moderation_router = Router()
 
@@ -300,20 +307,83 @@ async def process_blacklist_cancel(callback: types.CallbackQuery) -> None:
 
 
 @moderation_router.message(Command("blacklist", prefix="!/"))
-async def show_blacklist(message: types.Message, user_repo: UserRepository) -> None:
-    blocked_users = await user_repo.get_blocked_users()
-    if not blocked_users:
-        await message.answer("Чёрный список пуст")
+async def show_blacklist(message: types.Message, user_service: UserService) -> None:
+    """Show blacklist with pagination or search for specific user."""
+    command_args = message.text.split()[1:] if message.text else []
+
+    # Search for specific user if argument provided
+    if command_args:
+        identifier = command_args[0]
+        user = await user_service.find_blocked_user(identifier)
+
+        if not user:
+            await message.answer(f"User <code>{identifier}</code> not found in blacklist")
+            await message.delete()
+            return
+
+        # Show individual user details
+        text = build_user_details_text(user)
+        keyboard = build_user_details_keyboard(user)
+
+        await message.answer(text, reply_markup=keyboard.as_markup())
         await message.delete()
         return
 
-    builder = InlineKeyboardBuilder()
-    for user in blocked_users:
-        title = user.username or user.first_name or str(user.id)
-        builder.button(text=title, callback_data=UnblockUser(user_id=user.id).pack())
-    builder.adjust(1)
-    await message.answer("<b>Чёрный список:</b>", reply_markup=builder.as_markup())
+    # Show paginated blacklist
+    await _show_blacklist_page(message, user_service, page=0)
+
+
+async def _show_blacklist_page(
+    message: types.Message, user_service: UserService, page: int = 0, query: str = ""
+) -> None:
+    """Display blacklist page with pagination."""
+    blocked_users = await user_service.get_blocked_users()
+
+    if not blocked_users:
+        await message.answer("Blacklist is empty")
+        await message.delete()
+        return
+
+    page_size = 10
+    total_pages = (len(blocked_users) + page_size - 1) // page_size
+
+    # Ensure page is within bounds
+    page = max(0, min(page, total_pages - 1))
+
+    text = build_blacklist_text(len(blocked_users), page, total_pages, page_size, query)
+    keyboard = build_blacklist_keyboard(blocked_users, page, total_pages, page_size, query)
+
+    await message.answer(text, reply_markup=keyboard.as_markup())
     await message.delete()
+
+
+@moderation_router.callback_query(BlacklistPagination.filter())
+async def handle_blacklist_pagination(
+    callback: types.CallbackQuery,
+    callback_data: BlacklistPagination,
+    user_service: UserService,
+) -> None:
+    """Handle blacklist pagination callbacks."""
+    await callback.answer()
+
+    if not callback.message:
+        return
+
+    blocked_users = await user_service.get_blocked_users()
+    page_size = 10
+    total_pages = (len(blocked_users) + page_size - 1) // page_size
+
+    # Ensure page is within bounds
+    page = max(0, min(callback_data.page, total_pages - 1))
+
+    text = build_blacklist_text(len(blocked_users), page, total_pages, page_size, callback_data.query)
+    keyboard = build_blacklist_keyboard(blocked_users, page, total_pages, page_size, callback_data.query)
+
+    try:
+        await callback.message.edit_text(text, reply_markup=keyboard.as_markup())
+    except TelegramBadRequest:
+        # Fallback to sending new message if edit fails
+        await callback.message.answer(text, reply_markup=keyboard.as_markup())
 
 
 @moderation_router.callback_query(UnblockUser.filter())

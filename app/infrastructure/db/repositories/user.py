@@ -50,6 +50,23 @@ class UserRepository(IUserRepository):
         user_models = result.scalars().all()
         return [self._model_to_entity(user_model) for user_model in user_models]
 
+    async def find_blocked_user(self, identifier: str) -> UserEntity | None:
+        """Find blocked user by username (without @) or user_id."""
+        # Remove @ prefix if present
+        if identifier.startswith("@"):
+            identifier = identifier[1:]
+
+        # Try to find by user_id if identifier is numeric
+        if identifier.isdigit():
+            user_id = int(identifier)
+            result = await self.db.execute(select(User).filter(User.id == user_id, User.blocked))
+        else:
+            # Search by username
+            result = await self.db.execute(select(User).filter(User.username == identifier, User.blocked))
+
+        user_model = result.scalars().first()
+        return self._model_to_entity(user_model) if user_model else None
+
     async def _get_user_model(self, user_id: int) -> User | None:
         result = await self.db.execute(select(User).filter(User.id == user_id))
         return result.scalars().first()
