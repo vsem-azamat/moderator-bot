@@ -4,14 +4,26 @@ version = "0.1.0"
 description = "Telegram bot for moderating educational chats."
 readme = "README.md"
 requires-python = ">=3.12"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "aiogram>=3.5",
     "alembic>=1.13",
     "psycopg2-binary>=2.9",
-    "python-decouple>=3.8",
+    "pydantic>=2.5",
+    "pydantic-settings>=2.1",
     "sqlalchemy[asyncio]>=2.0",
     "asyncpg>=0.29",
-    "watchgod>=0.8",
+    "python-dotenv",
+    "structlog>=23.2",
     "pytz>=2024.1",
 ]
 
@@ -25,24 +37,257 @@ packages = ["app"]
 [tool.ruff]
 line-length = 120
 src = ["app", "tests"]
+target-version = "py312"
+exclude = ["alembic"]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "UP", "B", "C4"]
-ignore = ["E501"]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "N",   # pep8-naming
+    "S",   # flake8-bandit
+    "T20", # flake8-print
+    "PT",  # flake8-pytest-style
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+]
+ignore = [
+    "E501",  # line too long
+    "S101",  # use of assert
+    "T201",  # print found
+    "B008",  # function call in argument defaults
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "ARG001",  # unused function arguments (common in tests/fixtures)
+    "ARG002",  # unused method arguments (common in test methods)
+    "S311",    # pseudo-random generators (acceptable in tests)
+    "SIM117",  # nested with statements (common in test assertions)
+    "E402",    # module level import not at top (pytest fixtures)
+    "N815",    # mixed case variable name (test data)
+    "PLR2004", # magic value used in comparison
+]
 
 [tool.ruff.format]
 quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.mypy]
 python_version = "3.12"
 packages = ["app", "tests"]
-strict = false
+exclude = "alembic/"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+# Allow untyped decorators to handle aiogram and other framework decorators
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+# Specific module configurations
+[[tool.mypy.overrides]]
+module = [
+    "aiogram.*",
+    "alembic.*",
+    "asyncpg.*",
+    "psycopg2.*",
+]
+ignore_missing_imports = true
+
+# Allow untyped decorators specifically for handler files + aiogram patterns
+[[tool.mypy.overrides]]
+module = "app.presentation.telegram.handlers.*"
+disallow_untyped_decorators = false
+# Aiogram Message objects often have User | None patterns in handlers
+disable_error_code = ["union-attr"]
+
+# Aiogram middleware and utils - common Message.from_user.id patterns
+[[tool.mypy.overrides]]
+module = "app.presentation.telegram.middlewares.*"
+disable_error_code = ["union-attr"]  # message.from_user.id patterns
+
+[[tool.mypy.overrides]]
+module = "app.presentation.telegram.utils.*"
+disable_error_code = ["union-attr"]  # Message/Chat union types, regex Match | None
+
+# Application services that work with aiogram objects
+[[tool.mypy.overrides]]
+module = "app.application.services.*"
+disable_error_code = ["union-attr"]  # User | None patterns from message.from_user
+
+# Core infrastructure - DI container and configuration patterns
+[[tool.mypy.overrides]]
+module = "app.core.config"
+disable_error_code = ["arg-type"]  # Pydantic Field default_factory patterns
+
+[[tool.mypy.overrides]]
+module = "app.core.logging"
+disable_error_code = ["no-any-return"]  # Structlog BoundLogger typing
+
+[[tool.mypy.overrides]]
+module = "app.core.container"
+disable_error_code = ["return-value", "type-abstract"]  # DI container interface patterns
+
+# Comprehensive test configuration - tests have different typing needs
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_decorators = false
+disallow_untyped_defs = false         # Test functions don't need return annotations
+disallow_incomplete_defs = false      # Allow partial typing in tests
+check_untyped_defs = false           # Don't check untyped test functions
+warn_return_any = false              # Allow Any returns in tests
+warn_unused_ignores = false          # Allow unused ignores in tests
+
+# Test factories - common patterns for test data creation
+[[tool.mypy.overrides]]
+module = "tests.factories"
+disallow_any_generics = false       # Allow dict without type args
+disallow_untyped_defs = false       # Factory functions can be untyped
+
+# Test fixtures and mocks - pytest/mock specific issues
+[[tool.mypy.overrides]]
+module = "tests.conftest"
+disallow_untyped_defs = false       # Fixtures don't need strict typing
+warn_return_any = false
+
+# Mock objects in tests - mock attributes are dynamic
+[[tool.mypy.overrides]]
+module = "tests.handlers.*"
+disable_error_code = ["attr-defined", "union-attr"]  # Mock objects have dynamic attributes
+
+# Test middleware - similar mock issues
+[[tool.mypy.overrides]]
+module = "tests.middleware.*"
+disable_error_code = ["attr-defined", "union-attr", "no-untyped-call"]
+
+# Integration tests - allow more flexibility for database interactions
+[[tool.mypy.overrides]]
+module = "tests.integration.*"
+disable_error_code = ["union-attr", "type-arg"]  # Database results can be None
+disallow_any_generics = false
+
+# Performance tests - psutil and measurement code
+[[tool.mypy.overrides]]
+module = "tests.performance.*"
+ignore_missing_imports = true           # psutil stubs not required for tests
+disable_error_code = ["assignment", "import-untyped"]
+
+# Test helpers and factories - allow flexibility for test data creation
+[[tool.mypy.overrides]]
+module = "tests.telegram_helpers"
+disable_error_code = ["arg-type"]       # Test factories can have flexible types
+
+# E2E tests - more relaxed typing for integration scenarios
+[[tool.mypy.overrides]]
+module = "tests.e2e.*"
+disable_error_code = ["union-attr", "operator"]
+
+# Router integration tests - mock/test specific issues
+[[tool.mypy.overrides]]
+module = "tests.handlers.test_router_integration"
+disable_error_code = ["arg-type", "operator"]
+
+# Event handler tests - similar mock issues
+[[tool.mypy.overrides]]
+module = "tests.handlers.test_events_handlers"
+disable_error_code = ["arg-type", "no-untyped-call", "operator"]
+
+# Moderation handler tests
+[[tool.mypy.overrides]]
+module = "tests.handlers.test_moderation_handlers"
+disable_error_code = ["no-untyped-call"]
+
+# Admin handler tests
+[[tool.mypy.overrides]]
+module = "tests.handlers.test_admin_handlers"
+disable_error_code = ["no-untyped-call"]
+
+# Gradual typing - start with less strict rules for specific patterns
+[[tool.mypy.overrides]]
+module = "app.domain.value_objects"
+# Allow missing return annotations for __post_init__ methods (dataclass)
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "app.core.config"
+# Pydantic Field with default_factory can cause issues
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = "app.infrastructure.db.repositories.*"
+# Allow dict without type args for now (gradual improvement)
+disallow_any_generics = false
 
 [dependency-groups]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "pytest-cov>=4.0",
+    "pytest-mock>=3.12",
     "aiosqlite>=0.20",
     "ruff>=0.12.4",
+    "mypy>=1.8",
+    "pre-commit>=3.6",
+    "watchfiles>=0.21",
+    "psutil",
+    "types-pytz>=2025.2.0.20250809",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "handlers: marks tests as handler tests",
+    "e2e: marks tests as end-to-end tests",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__main__.py",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
 ]

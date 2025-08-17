@@ -1,18 +1,17 @@
-from aiogram import types, Router
+from aiogram import Router, types
 from aiogram.filters import Command
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from config import cnfg
+from app.application.services import buttons as buttons_service
+from app.core.config import settings
 from app.infrastructure.db.repositories import AdminRepository
 from app.presentation.telegram.utils import other
-from app.application.services import buttons as buttons_service
-
 
 router = Router()
 
 
 @router.message(Command("start", "help", prefix="/!"))
-async def start_private(message: types.Message, admin_repo: AdminRepository):
+async def start_private(message: types.Message, admin_repo: AdminRepository) -> None:
     text = (
         "<b>🤖 Привет!</b>\n"
         "Я модерирую чаты по Чехии!\n\n"
@@ -23,7 +22,7 @@ async def start_private(message: types.Message, admin_repo: AdminRepository):
         "• /report - пожаловаться (нужно переслать сообщение)\n"
     )
 
-    is_admin = message.from_user.id in cnfg.SUPER_ADMINS or await admin_repo.is_admin(message.from_user.id)
+    is_admin = message.from_user.id in settings.admin.super_admins or await admin_repo.is_admin(message.from_user.id)
     if is_admin:
         text += (
             "\n\n<b>👮 Команды для админов:</b>\n"
@@ -33,7 +32,7 @@ async def start_private(message: types.Message, admin_repo: AdminRepository):
             "• /unban - убрать из ЧС\n"
             "• /black - занести в ЧС всех чатов\n"
             "• /blacklist - посмотреть ЧС\n"
-            "• /welcome <text> - изменить приветствие\n"
+            "• /welcome &lt;text&gt; - изменить приветствие\n"
             "• /admin - добавить админа (ответом)\n"
             "• /unadmin - убрать админа (ответом)\n"
             "• /json - получить JSON сообщения\n"
@@ -50,8 +49,8 @@ async def start_private(message: types.Message, admin_repo: AdminRepository):
 
 
 @router.message(Command("chats", prefix="/!"))
-async def get_chats(message: types.Message, db: AsyncSession):
-    text = "<b>Студенческие чаты:</b>\n\n" "Пожалуйста, соблюдайте правила!\n\n"
+async def get_chats(message: types.Message, db: AsyncSession) -> None:
+    text = "<b>Студенческие чаты:</b>\n\nПожалуйста, соблюдайте правила!\n\n"
     builder = await buttons_service.get_chat_buttons(db)
     bot_message = await message.answer(text, reply_markup=builder.as_markup())
     await message.delete()
@@ -59,8 +58,8 @@ async def get_chats(message: types.Message, db: AsyncSession):
 
 
 @router.message(Command("contacts", prefix="/!"))
-async def get_contacts(message: types.Message):
-    text = "📞 <b>Контакты:</b>\n\n" "• 📧 <b>Сотрудничество:</b> @czech_media_admin\n" "• 🧑🏿‍💻 <b>Dev:</b> @vsem_azamat"
+async def get_contacts(message: types.Message) -> None:
+    text = "📞 <b>Контакты:</b>\n\n• 📧 <b>Сотрудничество:</b> @czech_media_admin\n• 🧑🏿‍💻 <b>Dev:</b> @vsem_azamat"
     bot_message = await message.answer(text)
     await message.delete()
     await other.sleep_and_delete(bot_message)

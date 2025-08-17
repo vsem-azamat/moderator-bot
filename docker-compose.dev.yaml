@@ -5,15 +5,16 @@ services:
       - .env
     volumes:
       - .:/app
+      - /app/.venv
     depends_on:
       - db
     environment:
       - PYTHONUNBUFFERED=1
     command: >
-      bash -c "
+      sh -c "
       ./scripts/wait_for_postgres.sh &&
-      alembic upgrade head &&
-      watchmedo auto-restart --directory=./ --pattern=*.py --recursive -- uv run -m app.presentation.telegram
+      uv run alembic upgrade head &&
+      uv run watchfiles 'uv run -m app.presentation.telegram' app/
       "
 
   db:

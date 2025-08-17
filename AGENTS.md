@@ -36,4 +36,3 @@ the repository works.
 
 These notes should help future Codex sessions quickly understand the project
 layout and any non-obvious logic.
-
