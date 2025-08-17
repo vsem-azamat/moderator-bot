@@ -1,6 +1,8 @@
 services:
   bot:
-    build: .
+    build:
+      context: .
+      target: production
     env_file:
       - .env
     depends_on:
@@ -11,12 +13,20 @@ services:
     command: >
       sh -c "
       ./scripts/wait_for_postgres.sh &&
-      uv run alembic upgrade head &&
-      uv run -m app.presentation.telegram
+      /app/.venv/bin/alembic upgrade head &&
+      /app/.venv/bin/python -m app.presentation.telegram
       "
 
+  webapp:
+    build:
+      context: ./webapp
+      target: production
+    ports:
+      - "${WEBAPP_PORT:-80}:80"
+    restart: unless-stopped
+
   db:
-    image: postgres
+    image: postgres:17.6
     restart: always
     shm_size: 128mb
     env_file:

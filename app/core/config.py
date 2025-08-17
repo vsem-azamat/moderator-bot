@@ -101,6 +101,21 @@ class LoggingSettings(BaseSettings):
     )
 
 
+class WebAppSettings(BaseSettings):
+    """Web application configuration."""
+
+    url: str = Field(default="http://localhost:3000", description="Web app URL")
+    api_secret: str = Field(default="your-secret-key", description="API secret for webapp communication")
+
+    model_config = SettingsConfigDict(
+        env_prefix="WEBAPP_",
+        case_sensitive=False,
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
 class AppSettings(BaseSettings):
     """Main application settings."""
 
@@ -112,6 +127,7 @@ class AppSettings(BaseSettings):
     telegram: TelegramSettings = Field(default_factory=TelegramSettings)
     admin: AdminSettings = Field(default_factory=AdminSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
+    webapp: WebAppSettings = Field(default_factory=WebAppSettings)
 
     model_config = SettingsConfigDict(
         env_file=".env",
