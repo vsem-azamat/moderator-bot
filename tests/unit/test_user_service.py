@@ -10,6 +10,9 @@ from app.domain.repositories import IUserRepository
 
 from tests.factories import UserFactory
 
+# Constants for patch paths
+BOT_LOGGER_PATCH_PATH = "app.application.services.user_service.BotLogger"
+
 
 class TestUserService:
     """Test cases for UserService."""
@@ -97,7 +100,7 @@ class TestUserService:
         )
 
         # Act
-        with patch("app.application.services.user_service.BotLogger") as mock_logger_class:
+        with patch(BOT_LOGGER_PATCH_PATH) as mock_logger_class:
             mock_logger = MagicMock()
             mock_logger_class.return_value = mock_logger
 
@@ -131,7 +134,7 @@ class TestUserService:
         mock_user_repository.save.return_value = updated_user
 
         # Act
-        with patch("app.application.services.user_service.BotLogger") as mock_logger_class:
+        with patch(BOT_LOGGER_PATCH_PATH) as mock_logger_class:
             mock_logger = MagicMock()
             mock_logger_class.return_value = mock_logger
 
@@ -160,7 +163,7 @@ class TestUserService:
         mock_user_repository.save.return_value = blocked_user
 
         # Act
-        with patch("app.application.services.user_service.BotLogger") as mock_logger_class:
+        with patch(BOT_LOGGER_PATCH_PATH) as mock_logger_class:
             mock_logger = MagicMock()
             mock_logger_class.return_value = mock_logger
 
@@ -185,7 +188,7 @@ class TestUserService:
         mock_user_repository.save.return_value = new_blocked_user
 
         # Act
-        with patch("app.application.services.user_service.BotLogger") as mock_logger_class:
+        with patch(BOT_LOGGER_PATCH_PATH) as mock_logger_class:
             mock_logger = MagicMock()
             mock_logger_class.return_value = mock_logger
 
@@ -212,7 +215,7 @@ class TestUserService:
         mock_user_repository.save.return_value = unblocked_user
 
         # Act
-        with patch("app.application.services.user_service.BotLogger") as mock_logger_class:
+        with patch(BOT_LOGGER_PATCH_PATH) as mock_logger_class:
             mock_logger = MagicMock()
             mock_logger_class.return_value = mock_logger
 
@@ -236,7 +239,7 @@ class TestUserService:
         mock_user_repository.get_by_id.return_value = user
 
         # Act
-        with patch("app.application.services.user_service.BotLogger") as mock_logger_class:
+        with patch(BOT_LOGGER_PATCH_PATH) as mock_logger_class:
             mock_logger = MagicMock()
             mock_logger_class.return_value = mock_logger
 
@@ -366,7 +369,7 @@ class TestUserServiceEdgeCases:
         mock_user_repository.save.return_value = expected_user
 
         # Act
-        with patch("app.application.services.user_service.BotLogger"):
+        with patch(BOT_LOGGER_PATCH_PATH):
             result = await user_service.create_or_update_user(
                 user_id=user_id, username=None, first_name="Test", last_name=None
             )
@@ -402,7 +405,7 @@ class TestUserServiceEdgeCases:
         mock_user_repository.save.side_effect = [blocked_user, unblocked_user]
 
         # Act
-        with patch("app.application.services.user_service.BotLogger"):
+        with patch(BOT_LOGGER_PATCH_PATH):
             # Block user
             result1 = await user_service.block_user(user_id)
             assert result1.is_blocked is True
