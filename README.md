@@ -84,7 +84,7 @@ uv run -m pytest
 * ❌ - will be implemented
 * 🚧 - in progress
 * 👮 - admins
-* 🧑‍🎓 - user 
+* 🧑‍🎓 - user
 
 | Command | Description | Status | For whom |
 |---------|-------------|--------|----------|
@@ -93,6 +93,7 @@ uv run -m pytest
 | `/ban` | Bans a user from the chat and adds to the blacklist. | ✅ | 👮 |
 | `/unban` | Unbans a user from the blacklist. | ✅ | 👮 |
 | `black` | Adds a user to the blacklist for all chats. | ✅ | 👮 |
+| `/blacklist` | Shows blacklisted users with unban buttons. | ✅ | 👮 |
 | `welcome` | Enables a welcome message for new chat members. | ✅ | 👮 |
 | `welcome <text>` | Changes the welcome message. | ✅ | 👮 |
 | `welcome -t <int>` | Changes the time for auto-deleting the welcome message. | 🚧 | 👮 |
