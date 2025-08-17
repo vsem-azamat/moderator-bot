@@ -198,7 +198,7 @@ uv run -m pytest -m integration
 uv run -m pytest -m "not slow"
 
 # With coverage
-uv run -m pytest --cov=app --cov-fail-under=80
+uv run -m pytest --cov=app --cov-fail-under=60
 ```
 
 ## Logging

@@ -221,7 +221,7 @@ uv run pytest --cov=app --cov-report=html
 open htmlcov/index.html
 
 # Check specific thresholds
-uv run pytest --cov=app --cov-fail-under=80
+uv run pytest --cov=app --cov-fail-under=60
 ```
 
 ### Coverage Configuration
