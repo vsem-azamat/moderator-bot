@@ -171,12 +171,11 @@ class TestModerationHandlers:
         error_msg = command_message.answer.call_args[0][0]
         assert "Произошла ошибка" in error_msg
 
-    # TODO: Fix this test - Chat object is frozen and can't be mocked easily
-    # async def test_unmute_user_success(
-    #     self, telegram_factory: TelegramObjectFactory, mock_bot: MockBot
-    # ):
-    #     """Test successful user unmute."""
-    #     pass
+    @pytest.mark.skip(reason="Chat object is frozen and cannot be mocked easily")
+    async def test_unmute_user_success(self, telegram_factory: TelegramObjectFactory, mock_bot: MockBot):
+        """Test successful user unmute."""
+        # This test is skipped due to pydantic frozen model restrictions
+        pass
 
     async def test_ban_user_success(self, telegram_factory: TelegramObjectFactory, mock_bot: MockBot):
         """Test successful user ban."""
