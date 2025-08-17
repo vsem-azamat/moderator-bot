@@ -215,7 +215,7 @@ class TestBlacklistMiddleware:
 
         tasks = [
             blacklist_middleware(handler, message, data)
-            for handler, message in zip(mock_handlers, messages, strict=False)
+            for handler, message in zip(mock_handlers, messages, strict=True)
         ]
         await asyncio.gather(*tasks)
 
@@ -325,7 +325,7 @@ class TestBlacklistMiddlewareEdgeCases:
 
         tasks = [
             blacklist_middleware(handler, message, data)
-            for handler, message in zip(mock_handlers, messages, strict=False)
+            for handler, message in zip(mock_handlers, messages, strict=True)
         ]
         await asyncio.gather(*tasks)
 

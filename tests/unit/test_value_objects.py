@@ -166,7 +166,7 @@ class TestMuteDuration:
         duration = MuteDuration(minutes=MAX_MUTE_DURATION_MINUTES)  # Exactly 1 year
 
         assert duration.minutes == MAX_MUTE_DURATION_MINUTES
-        assert duration.seconds == 31536000  # 1 year in seconds
+        assert duration.seconds == 365 * 24 * 60 * 60  # 1 year in seconds (365 days)
 
 
 class TestWelcomeSettings:

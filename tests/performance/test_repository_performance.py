@@ -19,12 +19,7 @@ class TestRepositoryPerformance:
 
     async def test_bulk_user_creation_performance(self, engine: AsyncEngine):
         """Test performance of bulk user creation."""
-        # Note: Larger batch sizes (>100) were found to cause session conflicts in the test environment.
-        # This is due to limitations in SQLAlchemy's concurrent session handling and the way sessions are
-        # managed during concurrent operations in the test setup (too many simultaneous sessions for SQLite).
-        # As a result, batch sizes are limited here to ensure reliable test execution.
-        # This limitation may affect the ability to measure absolute peak throughput, but relative performance
-        # between sequential and concurrent operations can still be meaningfully compared within these constraints.
+        # Limit batch size due to SQLAlchemy session constraints in test environment.
         batch_sizes = [10, 50, 100]
 
         for batch_size in batch_sizes:

@@ -430,6 +430,8 @@ class TestModerationServiceEdgeCases:
         with patch("datetime.datetime") as mock_datetime:
             mock_now = datetime(2023, 1, 1, 12, 0, 0)
             mock_datetime.now.return_value = mock_now
+            # Ensure that patched datetime.datetime can still be instantiated as normal,
+            # while allowing us to control datetime.datetime.now().
             mock_datetime.side_effect = lambda *args, **kw: datetime(*args, **kw)
 
             await moderation_service.mute_user(admin_id=admin_id, user_id=user_id, chat_id=chat_id, duration=duration)
