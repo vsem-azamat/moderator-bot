@@ -1,4 +1,5 @@
 from aiogram import Bot, Router, types
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -380,7 +381,7 @@ async def handle_blacklist_pagination(
 
     try:
         await callback.message.edit_text(text, reply_markup=keyboard.as_markup())
-    except (TelegramBadRequest, MessageNotModified):
+    except TelegramBadRequest:
         # Fallback to sending new message if edit fails
         await callback.message.answer(text, reply_markup=keyboard.as_markup())
 
