@@ -107,7 +107,7 @@ jobs:
         ADMIN_SUPER_ADMINS: "123456789"
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       if: success()
       with:
         file: ./coverage.xml
@@ -116,7 +116,7 @@ jobs:
         fail_ci_if_error: false
 
     - name: Upload coverage reports as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: coverage-reports
