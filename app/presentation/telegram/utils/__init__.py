@@ -5,5 +5,4 @@ __all__ = [
     "UnblockUser",
     "BlacklistPagination",
     "BlacklistSearch",
-    "other",
 ]
