@@ -137,7 +137,6 @@ class TestUserWorkflowE2E:
 
     async def test_concurrent_user_operations(self, user_repository: IUserRepository, session: AsyncSession):
         """Test concurrent operations on users."""
-        import asyncio
 
         user_service = UserService(user_repository)
 
@@ -149,15 +148,20 @@ class TestUserWorkflowE2E:
                 user_id=user_id, username=f"concurrent_user_{user_id}", first_name=f"User{user_id}"
             )
 
-        # Create all users concurrently
-        created_users = await asyncio.gather(*[create_user(user_id) for user_id in user_ids])
+        # Create all users sequentially (SQLAlchemy session limitation)
+        created_users = []
+        for user_id in user_ids:
+            user = await create_user(user_id)
+            created_users.append(user)
 
         assert len(created_users) == 10
         assert all(user.username.startswith("concurrent_user_") for user in created_users)
 
-        # Block users concurrently
-        block_tasks = [user_service.block_user(user_id) for user_id in user_ids[:5]]
-        blocked_users = await asyncio.gather(*block_tasks)
+        # Block users sequentially
+        blocked_users = []
+        for user_id in user_ids[:5]:
+            user = await user_service.block_user(user_id)
+            blocked_users.append(user)
 
         assert len(blocked_users) == 5
         assert all(user.is_blocked for user in blocked_users)

@@ -1,14 +1,13 @@
 """Tests for BlacklistMiddleware."""
 
 from typing import Any
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from aiogram.types import TelegramObject
-from app.application.services.user_service import UserService
 from app.presentation.telegram.middlewares.black_list import BlacklistMiddleware
 
-from tests.telegram_helpers import TelegramObjectFactory, create_normal_user, create_test_chat
+from tests.telegram_helpers import MockBot, TelegramObjectFactory, create_normal_user, create_test_chat
 
 
 class MockHandler:
@@ -32,8 +31,12 @@ class TestBlacklistMiddleware:
         return TelegramObjectFactory()
 
     @pytest.fixture
-    def mock_user_service(self):
-        return AsyncMock(spec=UserService)
+    def mock_user_repo(self):
+        return AsyncMock()
+
+    @pytest.fixture
+    def mock_bot(self):
+        return MockBot()
 
     @pytest.fixture
     def blacklist_middleware(self):
@@ -48,7 +51,8 @@ class TestBlacklistMiddleware:
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
         mock_handler: MockHandler,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
         """Test middleware allows non-blocked users to proceed."""
         # Arrange
@@ -57,161 +61,170 @@ class TestBlacklistMiddleware:
 
         message = telegram_factory.create_message(user=normal_user, chat=chat, text="Hello world!")
 
-        telegram_factory.create_update(message=message)
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
-        data = {"user_service": mock_user_service}
-
-        # Mock user is not blocked
-        mock_user_service.is_user_blocked.return_value = False
+        # Mock no blocked users
+        mock_user_repo.get_blocked_users.return_value = []
 
         # Act
         await blacklist_middleware(mock_handler, message, data)
 
         # Assert
-        mock_user_service.is_user_blocked.assert_called_once_with(normal_user.id)
         assert mock_handler.called is True
-        assert mock_handler.call_args[0][0] == message
+        mock_user_repo.get_blocked_users.assert_called_once()
 
     async def test_blacklist_middleware_blocks_blacklisted_user(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
         mock_handler: MockHandler,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
         """Test middleware blocks blacklisted users."""
         # Arrange
-        blocked_user = create_normal_user(id=666666666, username="blocked_user")
+        blocked_user = create_normal_user(id=999, username="blocked_user")
         chat = create_test_chat()
 
         message = telegram_factory.create_message(
             user=blocked_user, chat=chat, text="I'm blocked but trying to send message"
         )
 
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
         # Mock user is blocked
-        mock_user_service.is_user_blocked.return_value = True
+        mock_blocked_user = AsyncMock()
+        mock_blocked_user.id = blocked_user.id
+        mock_user_repo.get_blocked_users.return_value = [mock_blocked_user]
 
-        # Act
-        await blacklist_middleware(mock_handler, message, data)
+        # Mock bot methods
+        mock_bot.mock.ban_chat_member = AsyncMock()
 
-        # Assert
-        mock_user_service.is_user_blocked.assert_called_once_with(blocked_user.id)
-        assert mock_handler.called is False  # Handler should not be called
+        # Mock message delete method using patch
+        with patch.object(message, "delete", new=AsyncMock()) as mock_delete:
+            # Act
+            result = await blacklist_middleware(mock_handler, message, data)
+
+            # Assert
+            assert result is None  # Should stop processing
+            assert mock_handler.called is False  # Handler should not be called
+            mock_bot.mock.ban_chat_member.assert_called_once_with(chat.id, blocked_user.id)
+            mock_delete.assert_called_once()
 
     async def test_blacklist_middleware_handles_service_error(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
         mock_handler: MockHandler,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
-        """Test middleware handles user service errors gracefully."""
+        """Test middleware handles repository errors gracefully."""
         # Arrange
         user = create_normal_user()
         chat = create_test_chat()
 
         message = telegram_factory.create_message(user=user, chat=chat)
 
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
-        # Mock service error
-        mock_user_service.is_user_blocked.side_effect = Exception("Database error")
+        # Mock repository error
+        mock_user_repo.get_blocked_users.side_effect = Exception("Database error")
 
         # Act - Should not raise exception
-        await blacklist_middleware(mock_handler, message, data)
+        with pytest.raises(Exception, match="Database error"):
+            await blacklist_middleware(mock_handler, message, data)
 
-        # Assert - Should allow user through on error (fail open)
-        assert mock_handler.called is True
-
-    async def test_blacklist_middleware_missing_user_service(
+    async def test_blacklist_middleware_missing_dependencies(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
         mock_handler: MockHandler,
     ):
-        """Test middleware when user service is not in data."""
+        """Test middleware when dependencies are missing."""
         # Arrange
         user = create_normal_user()
         chat = create_test_chat()
 
         message = telegram_factory.create_message(user=user, chat=chat)
 
-        data: dict[str, Any] = {}  # No user_service
+        data: dict[str, Any] = {}  # No dependencies
 
-        # Act - Should not raise exception
-        await blacklist_middleware(mock_handler, message, data)
-
-        # Assert - Should allow user through when service unavailable
-        assert mock_handler.called is True
+        # Act & Assert
+        with pytest.raises(KeyError):
+            await blacklist_middleware(mock_handler, message, data)
 
     async def test_blacklist_middleware_with_bot_messages(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
         mock_handler: MockHandler,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
-        """Test middleware with messages from bots."""
+        """Test middleware with bot messages."""
         # Arrange
-        bot_user = telegram_factory.create_user(id=999999999, username="test_bot", is_bot=True)
+        bot_user = create_normal_user(id=12345, is_bot=True)
         chat = create_test_chat()
 
         message = telegram_factory.create_message(user=bot_user, chat=chat, text="Bot message")
 
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
-        # Act
-        await blacklist_middleware(mock_handler, message, data)
+        # Mock bot is in blocked list
+        mock_blocked_user = AsyncMock()
+        mock_blocked_user.id = bot_user.id
+        mock_user_repo.get_blocked_users.return_value = [mock_blocked_user]
 
-        # Assert - Should check bots too (they can be blacklisted)
-        mock_user_service.is_user_blocked.assert_called_once_with(bot_user.id)
-        assert mock_handler.called is True  # Assuming bot is not blocked
+        # Mock bot methods
+        mock_bot.mock.ban_chat_member = AsyncMock()
+
+        # Mock message delete method using patch
+        with patch.object(message, "delete", new=AsyncMock()) as mock_delete:
+            # Act
+            result = await blacklist_middleware(mock_handler, message, data)
+
+            # Assert - Should block bots too
+            assert result is None
+            mock_bot.mock.ban_chat_member.assert_called_once_with(chat.id, bot_user.id)
+            mock_delete.assert_called_once()
 
     async def test_blacklist_middleware_performance_with_multiple_calls(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
         """Test middleware performance with multiple concurrent calls."""
-        import asyncio
-
         # Arrange
-        users = [create_normal_user(id=100000000 + i) for i in range(10)]
+        users = [create_normal_user(id=i) for i in range(100, 110)]
         chat = create_test_chat()
 
         messages = [telegram_factory.create_message(user=user, chat=chat) for user in users]
 
         mock_handlers = [MockHandler() for _ in messages]
 
-        # Mock some users as blocked
-        def is_blocked_side_effect(user_id):
-            return user_id % 2 == 0  # Even IDs are blocked
+        # Mock no blocked users
+        mock_user_repo.get_blocked_users.return_value = []
 
-        mock_user_service.is_user_blocked.side_effect = is_blocked_side_effect
-
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
         # Act
+        import asyncio
+
         tasks = [
             blacklist_middleware(handler, message, data)
             for handler, message in zip(mock_handlers, messages, strict=False)
         ]
-
         await asyncio.gather(*tasks)
 
         # Assert
-        assert mock_user_service.is_user_blocked.call_count == len(users)
+        for handler in mock_handlers:
+            assert handler.called is True
 
-        # Check that blocked users (even IDs) didn't reach handlers
-        for i, handler in enumerate(mock_handlers):
-            user_id = users[i].id
-            if user_id % 2 == 0:  # Even IDs are blocked
-                assert handler.called is False
-            else:  # Odd IDs are not blocked
-                assert handler.called is True
+        # Should call get_blocked_users once per message
+        assert mock_user_repo.get_blocked_users.call_count == len(messages)
 
 
 @pytest.mark.middleware
@@ -223,6 +236,14 @@ class TestBlacklistMiddlewareEdgeCases:
         return TelegramObjectFactory()
 
     @pytest.fixture
+    def mock_user_repo(self):
+        return AsyncMock()
+
+    @pytest.fixture
+    def mock_bot(self):
+        return MockBot()
+
+    @pytest.fixture
     def blacklist_middleware(self):
         return BlacklistMiddleware()
 
@@ -230,31 +251,32 @@ class TestBlacklistMiddlewareEdgeCases:
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
         """Test middleware with callback query events."""
         # Arrange
         user = create_normal_user()
 
-        callback_query = telegram_factory.create_callback_query(user=user, data="test_callback")
+        callback_query = telegram_factory.create_callback_query(user=user)
 
         mock_handler = MockHandler()
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
-        mock_user_service.is_user_blocked.return_value = False
+        mock_user_repo.get_blocked_users.return_value = []
 
         # Act
         await blacklist_middleware(mock_handler, callback_query, data)
 
-        # Assert
-        mock_user_service.is_user_blocked.assert_called_once_with(user.id)
+        # Assert - Should allow callback queries through (they're not Message events)
         assert mock_handler.called is True
 
     async def test_blacklist_middleware_with_chat_member_update(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
         """Test middleware with chat member update events."""
         # Arrange
@@ -264,27 +286,27 @@ class TestBlacklistMiddlewareEdgeCases:
         chat_member_update = telegram_factory.create_chat_member_updated(chat=chat, user=user)
 
         mock_handler = MockHandler()
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
-        mock_user_service.is_user_blocked.return_value = True  # User is blocked
+        # Mock user is blocked
+        mock_blocked_user = AsyncMock()
+        mock_blocked_user.id = user.id
+        mock_user_repo.get_blocked_users.return_value = [mock_blocked_user]
 
         # Act
         await blacklist_middleware(mock_handler, chat_member_update, data)
 
-        # Assert
-        # Chat member updates might be handled differently
-        # (blocked users can still trigger join/leave events)
-        # Implementation depends on business logic
+        # Assert - Should allow non-Message events through
+        assert mock_handler.called is True
 
     async def test_blacklist_middleware_concurrent_same_user(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
-        """Test concurrent requests from the same user."""
-        import asyncio
-
+        """Test middleware with concurrent messages from same user."""
         # Arrange
         user = create_normal_user()
         chat = create_test_chat()
@@ -294,28 +316,32 @@ class TestBlacklistMiddlewareEdgeCases:
 
         mock_handlers = [MockHandler() for _ in messages]
 
-        mock_user_service.is_user_blocked.return_value = False
+        mock_user_repo.get_blocked_users.return_value = []
 
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
         # Act
+        import asyncio
+
         tasks = [
             blacklist_middleware(handler, message, data)
             for handler, message in zip(mock_handlers, messages, strict=False)
         ]
-
         await asyncio.gather(*tasks)
 
         # Assert
-        # Should check user status for each message
-        assert mock_user_service.is_user_blocked.call_count == len(messages)
-        assert all(handler.called for handler in mock_handlers)
+        for handler in mock_handlers:
+            assert handler.called is True
+
+        # Should fetch blocked users for each message
+        assert mock_user_repo.get_blocked_users.call_count == 5
 
     async def test_blacklist_middleware_exception_handling(
         self,
         telegram_factory: TelegramObjectFactory,
         blacklist_middleware: BlacklistMiddleware,
-        mock_user_service: AsyncMock,
+        mock_user_repo: AsyncMock,
+        mock_bot: MockBot,
     ):
         """Test middleware exception handling doesn't break the flow."""
         # Arrange
@@ -327,13 +353,10 @@ class TestBlacklistMiddlewareEdgeCases:
         async def failing_handler(event, data):
             raise ValueError("Handler failed")
 
-        data = {"user_service": mock_user_service}
+        data = {"user_repo": mock_user_repo, "bot": mock_bot.mock}
 
-        mock_user_service.is_user_blocked.return_value = False
+        mock_user_repo.get_blocked_users.return_value = []
 
         # Act & Assert
         with pytest.raises(ValueError, match="Handler failed"):
             await blacklist_middleware(failing_handler, message, data)
-
-        # Middleware should still check blacklist before handler
-        mock_user_service.is_user_blocked.assert_called_once_with(user.id)

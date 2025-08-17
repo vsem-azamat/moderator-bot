@@ -108,19 +108,21 @@ class TestRouterIntegration:
         leaving_user = create_normal_user(id=444555666)
 
         # User joining event
+        from aiogram.types import ChatMemberLeft, ChatMemberMember
+
         join_event = telegram_factory.create_chat_member_updated(
             chat=chat,
             user=joining_user,
-            old_chat_member=None,  # Was not a member
-            new_chat_member=joining_user,  # Now a member
+            old_chat_member=ChatMemberLeft(user=joining_user, status="left"),
+            new_chat_member=ChatMemberMember(user=joining_user, status="member"),
         )
 
         # User leaving event
         leave_event = telegram_factory.create_chat_member_updated(
             chat=chat,
             user=leaving_user,
-            old_chat_member=leaving_user,  # Was a member
-            new_chat_member=None,  # No longer a member
+            old_chat_member=ChatMemberMember(user=leaving_user, status="member"),
+            new_chat_member=ChatMemberLeft(user=leaving_user, status="left"),
         )
 
         join_update = telegram_factory.create_update(chat_member=join_event)
@@ -153,7 +155,9 @@ class TestRouterWorkflows:
         join_event = await event_simulator.simulate_user_join(user=spammer, chat=chat)
 
         # 2. User sends spam message (groups router would process)
-        spam_message = event_simulator.factory.create_message(user=spammer, chat=chat, text="Buy crypto now! 🚀💰")
+        spam_message = event_simulator.factory.create_message(
+            user=spammer, chat=chat, text="This is spam! Buy crypto now! 🚀💰"
+        )
 
         # 3. Admin mutes user (moderation router)
         mute_command = await event_simulator.simulate_moderation_action(

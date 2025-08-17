@@ -106,9 +106,13 @@ class TestAdminHandlers:
             reply_to_message=None,  # No reply
         )
 
-        # Act & Assert - Should raise AttributeError when trying to access reply_to_message.from_user
-        with pytest.raises(AttributeError):
-            await new_admin(command_message, mock_admin_repository)
+        # Act - Should handle gracefully and respond with error message
+        await new_admin(command_message, mock_admin_repository)
+
+        # Assert - Should send error message and not call repository methods
+        command_message.answer.assert_called_once()
+        error_msg = command_message.answer.call_args[0][0]
+        assert "ответ на сообщение" in error_msg.lower()
 
         # Repository methods should not be called
         mock_admin_repository.is_admin.assert_not_called()

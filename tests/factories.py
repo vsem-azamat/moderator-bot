@@ -13,9 +13,9 @@ class UserFactory:
     @staticmethod
     def create(
         id: int | None = None,
-        username: str | None = None,
-        first_name: str | None = None,
-        last_name: str | None = None,
+        username: str | None = "default",
+        first_name: str | None = "default",
+        last_name: str | None = "default",
         is_verified: bool = True,
         is_blocked: bool = False,
         created_at: datetime | None = None,
@@ -23,14 +23,14 @@ class UserFactory:
     ) -> UserEntity:
         """Create a test user entity."""
         return UserEntity(
-            id=id or random.randint(100000000, 999999999),
-            username=username or f"testuser{random.randint(1000, 9999)}",
-            first_name=first_name or f"Test{random.randint(1, 100)}",
-            last_name=last_name or f"User{random.randint(1, 100)}",
+            id=id if id is not None else random.randint(100000000, 999999999),
+            username=username if username != "default" else f"testuser{random.randint(1000, 9999)}",
+            first_name=first_name if first_name != "default" else f"Test{random.randint(1, 100)}",
+            last_name=last_name if last_name != "default" else f"User{random.randint(1, 100)}",
             is_verified=is_verified,
             is_blocked=is_blocked,
-            created_at=created_at or datetime.now(),
-            modified_at=modified_at or datetime.now(),
+            created_at=created_at if created_at is not None else datetime.now(),
+            modified_at=modified_at if modified_at is not None else datetime.now(),
         )
 
     @staticmethod

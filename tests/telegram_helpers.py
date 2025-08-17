@@ -54,6 +54,20 @@ class TelegramObjectFactory:
         is_forum: bool | None = False,
     ) -> Chat:
         """Create a mock Telegram Chat object."""
+        from aiogram.types import ChatPermissions
+
+        # Default permissions for supergroups
+        default_permissions = ChatPermissions(
+            can_send_messages=True,
+            can_send_media_messages=True,
+            can_send_polls=True,
+            can_send_other_messages=True,
+            can_add_web_page_previews=True,
+            can_change_info=False,
+            can_invite_users=False,
+            can_pin_messages=False,
+        )
+
         return Chat(
             id=id,
             type=type,
@@ -62,6 +76,7 @@ class TelegramObjectFactory:
             first_name=first_name,
             last_name=last_name,
             is_forum=is_forum,
+            permissions=default_permissions,
         )
 
     @staticmethod
@@ -177,6 +192,8 @@ class TelegramObjectFactory:
         **kwargs,
     ) -> ChatMemberUpdated:
         """Create a ChatMemberUpdated event."""
+        from aiogram.types import ChatMemberLeft, ChatMemberMember
+
         if chat is None:
             chat = TelegramObjectFactory.create_chat()
         if user is None:
@@ -184,12 +201,18 @@ class TelegramObjectFactory:
         if date is None:
             date = datetime.now()
 
+        # Create default chat members if not provided
+        if old_chat_member is None:
+            old_chat_member = ChatMemberLeft(user=user, status="left")
+        if new_chat_member is None:
+            new_chat_member = ChatMemberMember(user=user, status="member")
+
         return ChatMemberUpdated(
             chat=chat,
             from_user=user,
             date=date,
-            old_chat_member=old_chat_member or MagicMock(spec=ChatMemberLeft),
-            new_chat_member=new_chat_member or MagicMock(spec=ChatMemberMember),
+            old_chat_member=old_chat_member,
+            new_chat_member=new_chat_member,
             **kwargs,
         )
 
