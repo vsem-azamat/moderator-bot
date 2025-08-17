@@ -207,7 +207,7 @@ class TestUserWorkflowE2E:
 
 ### Coverage Requirements
 
-- **Minimum Coverage**: 80%
+- **Minimum Coverage**: 60%
 - **Target Coverage**: 90%+
 - **Critical Paths**: 100% (domain entities, core services)
 

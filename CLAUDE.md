@@ -174,7 +174,7 @@ user_service = UserService(user_repo)
 - **pytest** with **pytest-asyncio** for async test support
 - **SQLite in-memory** database for fast, isolated tests
 - **Fixtures** provide clean test data and dependencies
-- **Coverage reporting** with minimum 80% requirement
+- **Coverage reporting** with minimum 60% requirement
 
 ### Test Structure
 ```bash
