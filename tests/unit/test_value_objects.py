@@ -2,6 +2,7 @@
 
 import pytest
 from app.domain.value_objects import (
+    MAX_MUTE_DURATION_MINUTES,
     ChatId,
     ChatType,
     MessageId,
@@ -158,13 +159,13 @@ class TestMuteDuration:
     def test_mute_duration_validation_too_long(self):
         """Test MuteDuration validation with excessive duration."""
         with pytest.raises(ValueError, match="Mute duration cannot exceed 1 year"):
-            MuteDuration(minutes=525601)  # More than 1 year
+            MuteDuration(minutes=MAX_MUTE_DURATION_MINUTES + 1)  # More than 1 year
 
     def test_mute_duration_max_allowed(self):
         """Test maximum allowed mute duration."""
-        duration = MuteDuration(minutes=525600)  # Exactly 1 year
+        duration = MuteDuration(minutes=MAX_MUTE_DURATION_MINUTES)  # Exactly 1 year
 
-        assert duration.minutes == 525600
+        assert duration.minutes == MAX_MUTE_DURATION_MINUTES
         assert duration.seconds == 31536000  # 1 year in seconds
 
 

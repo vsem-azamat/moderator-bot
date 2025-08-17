@@ -58,6 +58,10 @@ class MessageId:
             raise ValueError("Message ID must be positive")
 
 
+# Constants
+MAX_MUTE_DURATION_MINUTES = 525600  # 1 year in minutes
+
+
 @dataclass(frozen=True)
 class MuteDuration:
     """Mute duration value object."""
@@ -67,7 +71,7 @@ class MuteDuration:
     def __post_init__(self):
         if self.minutes <= 0:
             raise ValueError("Mute duration must be positive")
-        if self.minutes > 525600:  # 1 year in minutes
+        if self.minutes > MAX_MUTE_DURATION_MINUTES:
             raise ValueError("Mute duration cannot exceed 1 year")
 
     @property
