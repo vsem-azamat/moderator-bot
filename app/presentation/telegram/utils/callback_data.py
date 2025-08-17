@@ -11,3 +11,12 @@ class BlacklistConfirm(CallbackData, prefix="blconfirm"):
 
 class UnblockUser(CallbackData, prefix="unblock"):
     user_id: int
+
+
+class BlacklistPagination(CallbackData, prefix="blpage"):
+    page: int
+    query: str = ""
+
+
+class BlacklistSearch(CallbackData, prefix="blsearch"):
+    user_id: int

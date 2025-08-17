@@ -31,6 +31,11 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
+    async def find_blocked_user(self, identifier: str) -> UserEntity | None:
+        """Find blocked user by username (without @) or user_id."""
+        pass
+
+    @abstractmethod
     async def exists(self, user_id: int) -> bool:
         """Check if user exists."""
         pass

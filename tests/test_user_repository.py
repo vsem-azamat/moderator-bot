@@ -1,4 +1,5 @@
 import pytest
+from app.domain.entities import UserEntity
 from app.infrastructure.db.repositories.user import UserRepository
 
 from tests.factories import UserFactory
@@ -82,3 +83,44 @@ class TestUserRepository:
 
         # Assert - No blocked users
         assert len(blocked_users_after) == 0
+
+    async def test_find_blocked_user(self, session):
+        """Test finding blocked users by username or ID."""
+        repo = UserRepository(session)
+
+        # Create test users
+        user1 = UserEntity(id=123, username="testuser", first_name="Test", is_blocked=True)
+        user2 = UserEntity(id=456, username="spammer", first_name="Spam", is_blocked=True)
+        user3 = UserEntity(id=789, username=None, first_name="NoUsername", is_blocked=False)  # Not blocked
+
+        await repo.save(user1)
+        await repo.save(user2)
+        await repo.save(user3)
+
+        # Test find by username with @
+        found_user = await repo.find_blocked_user("@testuser")
+        assert found_user is not None
+        assert found_user.id == 123
+        assert found_user.username == "testuser"
+
+        # Test find by username without @
+        found_user = await repo.find_blocked_user("spammer")
+        assert found_user is not None
+        assert found_user.id == 456
+
+        # Test find by user ID
+        found_user = await repo.find_blocked_user("123")
+        assert found_user is not None
+        assert found_user.id == 123
+
+        # Test find non-blocked user (should return None)
+        found_user = await repo.find_blocked_user("789")
+        assert found_user is None
+
+        # Test find non-existent user
+        found_user = await repo.find_blocked_user("@nonexistent")
+        assert found_user is None
+
+        # Test find non-existent ID
+        found_user = await repo.find_blocked_user("999")
+        assert found_user is None
