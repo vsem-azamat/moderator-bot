@@ -84,7 +84,7 @@ uv run -m pytest
 * ❌ - will be implemented
 * 🚧 - in progress
 * 👮 - admins
-* 🧑‍🎓 - user 
+* 🧑‍🎓 - user
 
 | Command | Description | Status | For whom |
 |---------|-------------|--------|----------|
