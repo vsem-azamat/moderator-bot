@@ -133,6 +133,19 @@ disable_error_code = ["union-attr"]  # Message/Chat union types, regex Match | N
 module = "app.application.services.*"
 disable_error_code = ["union-attr"]  # User | None patterns from message.from_user
 
+# Core infrastructure - DI container and configuration patterns
+[[tool.mypy.overrides]]
+module = "app.core.config"
+disable_error_code = ["arg-type"]  # Pydantic Field default_factory patterns
+
+[[tool.mypy.overrides]]
+module = "app.core.logging"
+disable_error_code = ["no-any-return"]  # Structlog BoundLogger typing
+
+[[tool.mypy.overrides]]
+module = "app.core.container"
+disable_error_code = ["return-value", "type-abstract"]  # DI container interface patterns
+
 # Comprehensive test configuration - tests have different typing needs
 [[tool.mypy.overrides]]
 module = "tests.*"

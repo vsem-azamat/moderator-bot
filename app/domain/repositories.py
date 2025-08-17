@@ -1,6 +1,7 @@
 """Repository interfaces (ports) for the domain layer."""
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 from app.domain.entities import (
     AdminEntity,
@@ -109,6 +110,23 @@ class IMessageRepository(ABC):
     @abstractmethod
     async def delete_user_messages(self, user_id: int, chat_id: int | None = None) -> int:
         """Delete user messages and return count."""
+        pass
+
+    @abstractmethod
+    async def add_message(
+        self, chat_id: int, user_id: int, message_id: int, message: str | None, message_info: dict[str, Any]
+    ) -> None:
+        """Add message (legacy method)."""
+        pass
+
+    @abstractmethod
+    async def is_first_message(self, chat_id: int, user_id: int) -> bool:
+        """Check if this is the user's first message in chat."""
+        pass
+
+    @abstractmethod
+    async def is_similar_spam_message(self, message: str) -> bool:
+        """Check if similar spam message exists."""
         pass
 
 

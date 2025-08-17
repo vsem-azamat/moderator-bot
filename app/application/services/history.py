@@ -21,12 +21,17 @@ async def save_message(db: AsyncSession, message: types.Message) -> None:
 
 async def merge_user(db: AsyncSession, user: types.User) -> None:
     user_repo = get_user_repository(db)
-    await user_repo.merge_user(
-        id_tg=user.id,
+    from app.domain.entities import UserEntity
+
+    user_entity = UserEntity(
+        id=user.id,
         username=user.username,
         first_name=user.first_name,
         last_name=user.last_name,
+        is_verified=False,
+        is_blocked=False,
     )
+    await user_repo.save(user_entity)
 
 
 async def merge_chat(db: AsyncSession, chat: types.Chat) -> None:

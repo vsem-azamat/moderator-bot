@@ -331,9 +331,11 @@ async def unblock_user_callback(
             return
         member = await bot.get_chat_member(callback.message.chat.id, user_id)
         user = member.user
+        user_identifier = user.username or user.first_name or str(user.id)
     except Exception:
-        user = await bot.get_chat(user_id)
-    user_identifier = user.username or user.first_name or str(user.id)
+        # Fallback: user not found, use ID as identifier
+        user_identifier = str(user_id)
+
     if callback.message and isinstance(callback.message, types.Message):
         await callback.message.edit_text(f"Пользователь {user_identifier} разблокирован")
     await callback.answer()
