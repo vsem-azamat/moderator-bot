@@ -5,6 +5,7 @@ from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.application.services.user_service import UserService
 from app.infrastructure.db.repositories import (
     get_admin_repository,
     get_chat_link_repository,
@@ -34,4 +35,6 @@ class DependenciesMiddleware(BaseMiddleware):
             data["chat_repo"] = get_chat_repository(session)
             data["chat_link_repo"] = get_chat_link_repository(session)
             data["message_repo"] = get_message_repository(session)
+            # Add UserService with proper dependency injection
+            data["user_service"] = UserService(get_user_repository(session))
             return await handler(event, data)
