@@ -15,8 +15,8 @@ services:
     command: >
       sh -c "
       ./scripts/wait_for_postgres.sh &&
-      /app/.venv/bin/alembic upgrade head &&
-      /app/.venv/bin/python -m watchfiles '/app/.venv/bin/python -m app.presentation.telegram' app/
+      uv run alembic upgrade head &&
+      uv run watchfiles 'uv run -m app.presentation.telegram' app/
       "
 
   webapp:
