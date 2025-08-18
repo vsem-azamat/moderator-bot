@@ -1,0 +1,229 @@
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { chatAPI } from '../services/api';
+import type { ChatUpdateData } from '../types/chat';
+
+interface ChatBulkActionsProps {
+  selectedChatIds: number[];
+  onActionComplete: () => void;
+}
+
+const ChatBulkActions: React.FC<ChatBulkActionsProps> = ({
+  selectedChatIds,
+  onActionComplete,
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [updateData, setUpdateData] = useState<ChatUpdateData>({});
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: (data: ChatUpdateData) =>
+      chatAPI.bulkUpdateChats(selectedChatIds, data),
+    onSuccess: () => {
+      onActionComplete();
+      setUpdateData({});
+      setIsExpanded(false);
+    },
+  });
+
+  const handleBulkUpdate = () => {
+    if (Object.keys(updateData).length === 0) {
+      alert('Выберите настройки для изменения');
+      return;
+    }
+
+    const confirmMessage = `Применить изменения к ${selectedChatIds.length} чатам?`;
+    if (confirm(confirmMessage)) {
+      bulkUpdateMutation.mutate(updateData);
+    }
+  };
+
+  const quickActions = [
+    {
+      label: 'Включить приветствие',
+      action: () => bulkUpdateMutation.mutate({ is_welcome_enabled: true }),
+    },
+    {
+      label: 'Отключить приветствие',
+      action: () => bulkUpdateMutation.mutate({ is_welcome_enabled: false }),
+    },
+    {
+      label: 'Включить капчу',
+      action: () => bulkUpdateMutation.mutate({ is_captcha_enabled: true }),
+    },
+    {
+      label: 'Отключить капчу',
+      action: () => bulkUpdateMutation.mutate({ is_captcha_enabled: false }),
+    },
+  ];
+
+  return (
+    <div className="bulk-actions">
+      <div className="bulk-actions-header">
+        <h3>Массовые действия ({selectedChatIds.length} чатов)</h3>
+        <button
+          className="expand-toggle"
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? 'Свернуть' : 'Развернуть'}
+        </button>
+      </div>
+
+      <div className="quick-actions">
+        {quickActions.map((action, index) => (
+          <button
+            key={index}
+            className="quick-action-btn"
+            onClick={action.action}
+            disabled={bulkUpdateMutation.isPending}
+          >
+            {action.label}
+          </button>
+        ))}
+      </div>
+
+      {isExpanded && (
+        <div className="detailed-actions">
+          <div className="bulk-form">
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={updateData.is_welcome_enabled !== undefined}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setUpdateData(prev => ({ ...prev, is_welcome_enabled: true }));
+                    } else {
+                      const { is_welcome_enabled, ...rest } = updateData;
+                      void is_welcome_enabled; // Suppress unused warning
+                      setUpdateData(rest);
+                    }
+                  }}
+                />
+                Приветствие
+              </label>
+              {updateData.is_welcome_enabled !== undefined && (
+                <select
+                  value={updateData.is_welcome_enabled ? 'true' : 'false'}
+                  onChange={(e) => setUpdateData(prev => ({
+                    ...prev,
+                    is_welcome_enabled: e.target.value === 'true'
+                  }))}
+                >
+                  <option value="true">Включено</option>
+                  <option value="false">Отключено</option>
+                </select>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={updateData.is_captcha_enabled !== undefined}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setUpdateData(prev => ({ ...prev, is_captcha_enabled: true }));
+                    } else {
+                      const { is_captcha_enabled, ...rest } = updateData;
+                      void is_captcha_enabled; // Suppress unused warning
+                      setUpdateData(rest);
+                    }
+                  }}
+                />
+                Капча
+              </label>
+              {updateData.is_captcha_enabled !== undefined && (
+                <select
+                  value={updateData.is_captcha_enabled ? 'true' : 'false'}
+                  onChange={(e) => setUpdateData(prev => ({
+                    ...prev,
+                    is_captcha_enabled: e.target.value === 'true'
+                  }))}
+                >
+                  <option value="true">Включена</option>
+                  <option value="false">Отключена</option>
+                </select>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={updateData.welcome_delete_time !== undefined}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setUpdateData(prev => ({ ...prev, welcome_delete_time: 60 }));
+                    } else {
+                      const { welcome_delete_time, ...rest } = updateData;
+                      void welcome_delete_time; // Suppress unused warning
+                      setUpdateData(rest);
+                    }
+                  }}
+                />
+                Время удаления приветствия (секунды)
+              </label>
+              {updateData.welcome_delete_time !== undefined && (
+                <input
+                  type="number"
+                  min="1"
+                  value={updateData.welcome_delete_time}
+                  onChange={(e) => setUpdateData(prev => ({
+                    ...prev,
+                    welcome_delete_time: parseInt(e.target.value)
+                  }))}
+                />
+              )}
+            </div>
+
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={updateData.welcome_message !== undefined}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setUpdateData(prev => ({ ...prev, welcome_message: '' }));
+                    } else {
+                      const { welcome_message, ...rest } = updateData;
+                      void welcome_message; // Suppress unused warning
+                      setUpdateData(rest);
+                    }
+                  }}
+                />
+                Текст приветствия
+              </label>
+              {updateData.welcome_message !== undefined && (
+                <textarea
+                  value={updateData.welcome_message}
+                  onChange={(e) => setUpdateData(prev => ({
+                    ...prev,
+                    welcome_message: e.target.value
+                  }))}
+                  placeholder="Введите текст приветствия..."
+                  rows={3}
+                />
+              )}
+            </div>
+
+            <button
+              className="apply-bulk-btn"
+              onClick={handleBulkUpdate}
+              disabled={bulkUpdateMutation.isPending || Object.keys(updateData).length === 0}
+            >
+              {bulkUpdateMutation.isPending ? 'Применение...' : 'Применить изменения'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bulkUpdateMutation.error && (
+        <div className="bulk-error">
+          Ошибка: {bulkUpdateMutation.error.message}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ChatBulkActions;

@@ -17,12 +17,38 @@ services:
       uv run -m app.presentation.telegram
       "
 
+  api:
+    build:
+      context: .
+      target: production
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    command: >
+      sh -c "
+      ./scripts/wait_for_postgres.sh &&
+      uv run uvicorn app.presentation.api.main:app --host 0.0.0.0 --port 8000
+      "
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - webapp
+      - api
+    restart: unless-stopped
+
   webapp:
     build:
       context: ./webapp
       target: production
-    ports:
-      - "${WEBAPP_PORT:-80}:80"
     restart: unless-stopped
 
   db:

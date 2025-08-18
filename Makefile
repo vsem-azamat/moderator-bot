@@ -76,14 +76,24 @@ db-migrate: ## Create new migration
 	uv run alembic revision --autogenerate -m "$$msg"
 
 # Docker
-docker-dev: ## Start development environment with Docker
-	docker-compose -f docker-compose.dev.yaml up --build
+docker-dev: ## Start development environment with local database
+	docker-compose -f docker-compose.dev.yaml --profile local-db up --build
+
+docker-dev-prod-db: ## Start development with PRODUCTION database (DANGEROUS!)
+	@echo "⚠️  WARNING: You are connecting to PRODUCTION database!"
+	@echo "This will run migrations on production data!"
+	@read -p "Are you absolutely sure? Type 'YES' to continue: " confirm && [ "$$confirm" = "YES" ] || exit 1
+	docker-compose -f docker-compose.dev.yaml --profile prod-db up --build
 
 docker-prod: ## Start production environment with Docker
 	docker-compose up --build
 
 docker-down: ## Stop Docker containers
+	docker-compose -f docker-compose.dev.yaml down
 	docker-compose down
+
+run-api: ## Run the FastAPI server locally
+	uv run uvicorn app.presentation.api.main:app --host 0.0.0.0 --port 8000 --reload
 
 docker-logs: ## Show Docker logs
 	docker-compose logs -f

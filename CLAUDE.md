@@ -15,6 +15,7 @@ The project now includes a **React TypeScript web application** that provides an
 - **aiogram 3.x** - Async Telegram Bot API framework
 - **SQLAlchemy 2.x** - Modern async ORM with declarative models
 - **PostgreSQL 17.6** - Latest production database
+- **FastAPI 0.116.1+** - Modern async web framework for REST API
 - **Pydantic 2.x** - Data validation and settings management
 - **structlog** - Structured logging
 - **pytest** - Testing framework with async support
@@ -22,12 +23,12 @@ The project now includes a **React TypeScript web application** that provides an
 - **uv 0.8.11** - Modern Python package manager
 
 ### Frontend
-- **React 19+** - Latest React with concurrent features
-- **TypeScript 5.9** - Type-safe JavaScript development
-- **Vite 7+** - Ultra-fast build tool and development server
-- **@telegram-apps/sdk-react** - Official Telegram WebApp integration
-- **@tanstack/react-query** - Powerful data fetching and caching
-- **Node.js 24** - Latest LTS runtime environment
+- **React 19.1.1** - Latest React with concurrent features
+- **TypeScript 5.9.2** - Type-safe JavaScript development
+- **Vite 7.1.2** - Ultra-fast build tool and development server
+- **@telegram-apps/sdk-react 3.3.6** - Official Telegram WebApp integration
+- **@tanstack/react-query 5.85.3** - Powerful data fetching and caching
+- **Node.js 24** - Latest LTS runtime environment (Docker: node:24-alpine)
 
 ### Infrastructure
 - **Docker** - Containerized development and deployment
@@ -54,15 +55,41 @@ cp .env.example .env
 ## Running the Application
 
 ### Development Mode
-Run with Docker Compose (includes PostgreSQL, React webapp, hot reload, and Adminer):
+
+#### Local Database (Default)
+Run with Docker Compose (includes PostgreSQL, FastAPI, React webapp, nginx proxy, hot reload, and Adminer):
 ```bash
-docker-compose -f docker-compose.dev.yaml up --build
+# Using make (recommended)
+make docker-dev
+
+# Or directly
+docker-compose -f docker-compose.dev.yaml --profile local-db up --build
 ```
 
-This will start:
+#### Production Database Connection
+For debugging and data analysis on production database:
+```bash
+# Interactive script with safety checks (recommended)
+./scripts/prod-db-connect.sh
+
+# Or using make with confirmation
+make docker-dev-prod-db
+
+# Or directly (advanced users)
+docker-compose -f docker-compose.dev.yaml --profile prod-db up --build
+```
+
+**⚠️ IMPORTANT**: Production database connection requires:
+1. Create `.env.prod-db` from `.env.prod-db.example`
+2. Fill with production database credentials
+3. Use with extreme caution - this connects to live data!
+
+Services available:
 - **Bot service** - Telegram bot with hot reload
-- **WebApp service** - React development server on port 3000
-- **PostgreSQL** - Database server
+- **API service** - FastAPI server on port 8000 with hot reload
+- **WebApp service** - React development server (internal port 80)
+- **nginx** - Reverse proxy on port 80 (use with ngrok for external access)
+- **PostgreSQL** - Database server (local mode only)
 - **Adminer** - Database administration UI on port 8080
 
 ### Production Mode
@@ -74,7 +101,32 @@ docker-compose up --build
 ```bash
 # Make sure PostgreSQL is running and configured
 uv run -m app.presentation.telegram
+
+# Run API server separately
+uv run uvicorn app.presentation.api.main:app --host 0.0.0.0 --port 8000 --reload
+# Or use make command
+make run-api
 ```
+
+### ngrok Setup for Telegram WebApp
+
+For Telegram WebApp development, use ngrok to expose your local nginx:
+
+```bash
+# Start development environment
+make docker-dev-prod-db  # or make docker-dev for local DB
+
+# In another terminal, expose nginx with ngrok
+ngrok http 80
+
+# Copy the HTTPS URL (e.g., https://abc123.ngrok-free.app)
+# Update .env with: WEBAPP_URL=https://abc123.ngrok-free.app
+```
+
+**Architecture:**
+- `https://abc123.ngrok-free.app/` → React WebApp
+- `https://abc123.ngrok-free.app/api/` → FastAPI
+- `https://abc123.ngrok-free.app/health` → API health check
 
 ## Code Quality & Testing
 
@@ -128,7 +180,7 @@ The project follows clean DDD architecture with clear separation of concerns:
 - **`app/domain/`** - Pure domain logic (entities, value objects, repository interfaces, exceptions)
 - **`app/application/`** - Application services and use cases
 - **`app/infrastructure/`** - External concerns (database, external APIs)
-- **`app/presentation/`** - User interface layer (Telegram handlers, middlewares)
+- **`app/presentation/`** - User interface layer (Telegram handlers, middlewares, FastAPI REST API)
 
 ### Domain Layer (`app/domain/`)
 
@@ -194,6 +246,13 @@ user_service = UserService(user_repo)
 ### WebApp Commands (Admins only)
 - `/webapp` - Open React-based admin panel via Telegram WebApp
 - `/help_webapp` - Show help for webapp functionality
+
+### API Endpoints
+**Chat Management API (`/api/chats/`)**:
+- `GET /` - Get all managed chats
+- `PUT /{chat_id}` - Update chat settings
+- `GET /{chat_id}/stats` - Get chat statistics
+- `POST /bulk-update` - Bulk update multiple chats
 
 ## Testing Strategy
 
@@ -331,13 +390,13 @@ The frontend is designed to provide administrators with:
 - **Incident tracking and management** for serious violations
 
 ### Technology Stack
-- **React 19+** with TypeScript - Latest React features with full type safety
-- **Vite 7+** - Ultra-fast build tool and development server
-- **@telegram-apps/sdk-react 3.3+** - Official Telegram WebApp integration
-- **@tanstack/react-query 5.85+** - Powerful data fetching and caching
-- **Axios** - HTTP client for API communication
-- **Node.js 24** - Latest LTS runtime environment
-- **ESLint & TypeScript 5.9** - Code quality and type checking
+- **React 19.1.1** with TypeScript 5.9.2 - Latest React features with full type safety
+- **Vite 7.1.2** - Ultra-fast build tool and development server
+- **@telegram-apps/sdk-react 3.3.6** - Official Telegram WebApp integration
+- **@tanstack/react-query 5.85.3** - Powerful data fetching and caching
+- **Axios 1.11.0** - HTTP client for API communication
+- **Node.js 24** - Latest LTS runtime environment (Docker: node:24-alpine)
+- **ESLint 9.33.0 & TypeScript 5.9.2** - Code quality and type checking
 
 ### Current Features (v1.0)
 - **Telegram Integration** - Native Telegram WebApp experience with theme support
@@ -346,7 +405,10 @@ The frontend is designed to provide administrators with:
 - **User Information Display** - Shows detailed user info from Telegram
 - **Debug Interface** - Development tools for debugging Telegram integration
 - **Responsive Design** - Optimized for both mobile and desktop usage
-- **Real-time Updates** - Live data synchronization with the bot backend
+- **Chat Management Interface** - Basic chat listing and configuration
+- **API Integration** - RESTful API for chat management operations
+- **Bulk Operations** - Support for bulk chat configuration updates
+- **Chat Statistics Framework** - Basic structure for analytics (data collection TODO)
 
 ### Planned Features (Roadmap)
 - **Dashboard Analytics** - Charts and graphs for moderation statistics
