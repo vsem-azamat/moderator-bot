@@ -44,6 +44,8 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - moderator-bot-db:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
 
   adminer:
     image: adminer:5.3.0
