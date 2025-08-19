@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { chatAPI } from '../services/api';
 import type { Chat } from '../types/chat';
 import ChatCard from './ChatCard';
-import ChatBulkActions from './ChatBulkActions';
+// import ChatBulkActions from './ChatBulkActions'; // Temporarily disabled
 
 interface ChatListProps {
   onChatSelect?: (chat: Chat) => void;
@@ -41,13 +41,13 @@ const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
     );
   };
 
-  const handleSelectAll = () => {
-    setSelectedChats(
-      selectedChats.length === filteredChats.length
-        ? []
-        : filteredChats.map(chat => chat.id)
-    );
-  };
+  // const handleSelectAll = () => {
+  //   setSelectedChats(
+  //     selectedChats.length === filteredChats.length
+  //       ? []
+  //       : filteredChats.map(chat => chat.id)
+  //   );
+  // };
 
   if (isLoading) {
     return (
@@ -81,23 +81,19 @@ const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
           />
         </div>
 
-        <div className="selection-controls">
-          <label className="checkbox-label">
+        <div className="selection-controls" style={{ opacity: 0.5 }}>
+          <label className="checkbox-label" title="Bulk selection temporarily disabled">
             <input
               type="checkbox"
-              checked={selectedChats.length === filteredChats.length && filteredChats.length > 0}
-              onChange={handleSelectAll}
+              checked={false}
+              disabled={true}
             />
-            Выбрать все
+            Выбрать все (отключено)
           </label>
-          {selectedChats.length > 0 && (
-            <span className="selected-count">
-              Выбрано: {selectedChats.length}
-            </span>
-          )}
         </div>
       </div>
 
+      {/* Bulk actions temporarily disabled
       {selectedChats.length > 0 && (
         <ChatBulkActions
           selectedChatIds={selectedChats}
@@ -107,6 +103,7 @@ const ChatList: React.FC<ChatListProps> = ({ onChatSelect }) => {
           }}
         />
       )}
+      */}
 
       <div className="chat-grid">
         {filteredChats.map(chat => (

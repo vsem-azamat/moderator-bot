@@ -37,24 +37,8 @@ const ChatBulkActions: React.FC<ChatBulkActionsProps> = ({
     }
   };
 
-  const quickActions = [
-    {
-      label: 'Включить приветствие',
-      action: () => bulkUpdateMutation.mutate({ is_welcome_enabled: true }),
-    },
-    {
-      label: 'Отключить приветствие',
-      action: () => bulkUpdateMutation.mutate({ is_welcome_enabled: false }),
-    },
-    {
-      label: 'Включить капчу',
-      action: () => bulkUpdateMutation.mutate({ is_captcha_enabled: true }),
-    },
-    {
-      label: 'Отключить капчу',
-      action: () => bulkUpdateMutation.mutate({ is_captcha_enabled: false }),
-    },
-  ];
+  // Quick actions temporarily disabled until bulk update API is fully implemented
+  const quickActions: Array<{label: string; action: () => void}> = [];
 
   return (
     <div className="bulk-actions">
@@ -68,18 +52,20 @@ const ChatBulkActions: React.FC<ChatBulkActionsProps> = ({
         </button>
       </div>
 
-      <div className="quick-actions">
-        {quickActions.map((action, index) => (
-          <button
-            key={index}
-            className="quick-action-btn"
-            onClick={action.action}
-            disabled={bulkUpdateMutation.isPending}
-          >
-            {action.label}
-          </button>
-        ))}
-      </div>
+      {quickActions.length > 0 && (
+        <div className="quick-actions">
+          {quickActions.map((action, index) => (
+            <button
+              key={index}
+              className="quick-action-btn"
+              onClick={action.action}
+              disabled={bulkUpdateMutation.isPending}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {isExpanded && (
         <div className="detailed-actions">
@@ -209,9 +195,10 @@ const ChatBulkActions: React.FC<ChatBulkActionsProps> = ({
             <button
               className="apply-bulk-btn"
               onClick={handleBulkUpdate}
-              disabled={bulkUpdateMutation.isPending || Object.keys(updateData).length === 0}
+              disabled={true}
+              title="Функция временно отключена"
             >
-              {bulkUpdateMutation.isPending ? 'Применение...' : 'Применить изменения'}
+              Применить изменения (отключено)
             </button>
           </div>
         </div>

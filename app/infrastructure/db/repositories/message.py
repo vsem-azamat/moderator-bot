@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+from typing import Any
+
 from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import and_
@@ -138,6 +141,96 @@ class MessageRepository(IMessageRepository):
         result = await self.db.execute(query)
         count = result.scalar()
         return count is not None and count > 0
+
+    # Statistics methods for webapp
+    async def get_message_count_24h(self, chat_id: int) -> int:
+        """Get count of messages in chat within last 24 hours."""
+        since = datetime.now() - timedelta(hours=24)
+
+        query = select(func.count(Message.id)).where(
+            and_(
+                Message.chat_id == chat_id,
+                Message.timestamp >= since,
+                ~Message.spam,  # Exclude spam messages
+            )
+        )
+
+        result = await self.db.execute(query)
+        return result.scalar() or 0
+
+    async def get_active_users_24h(self, chat_id: int) -> int:
+        """Get count of unique active users in chat within last 24 hours."""
+        since = datetime.now() - timedelta(hours=24)
+
+        query = select(func.count(func.distinct(Message.user_id))).where(
+            and_(
+                Message.chat_id == chat_id,
+                Message.timestamp >= since,
+                ~Message.spam,  # Exclude spam messages
+            )
+        )
+
+        result = await self.db.execute(query)
+        return result.scalar() or 0
+
+    async def get_last_activity(self, chat_id: int) -> datetime | None:
+        """Get timestamp of last message in chat."""
+        query = select(Message.timestamp).where(Message.chat_id == chat_id).order_by(Message.timestamp.desc()).limit(1)
+
+        result = await self.db.execute(query)
+        return result.scalar()
+
+    async def get_chat_stats_bulk(self, chat_ids: list[int]) -> dict[int, dict[str, Any]]:
+        """Get statistics for multiple chats efficiently."""
+        since_24h = datetime.now() - timedelta(hours=24)
+
+        # Get message counts for last 24h
+        message_counts_query = (
+            select(Message.chat_id, func.count(Message.id).label("message_count"))
+            .where(and_(Message.chat_id.in_(chat_ids), Message.timestamp >= since_24h, ~Message.spam))
+            .group_by(Message.chat_id)
+        )
+
+        # Get active user counts for last 24h
+        active_users_query = (
+            select(Message.chat_id, func.count(func.distinct(Message.user_id)).label("active_users"))
+            .where(and_(Message.chat_id.in_(chat_ids), Message.timestamp >= since_24h, ~Message.spam))
+            .group_by(Message.chat_id)
+        )
+
+        # Get last activity for each chat
+        last_activity_query = (
+            select(Message.chat_id, func.max(Message.timestamp).label("last_activity"))
+            .where(Message.chat_id.in_(chat_ids))
+            .group_by(Message.chat_id)
+        )
+
+        # Execute queries
+        message_counts_result = await self.db.execute(message_counts_query)
+        active_users_result = await self.db.execute(active_users_query)
+        last_activity_result = await self.db.execute(last_activity_query)
+
+        # Build results dict
+        stats: dict[int, dict[str, Any]] = {}
+
+        # Initialize all chats with zero values
+        for chat_id in chat_ids:
+            stats[chat_id] = {"message_count_24h": 0, "active_users_24h": 0, "last_activity": None}
+
+        # Fill in message counts
+        for row in message_counts_result:
+            stats[row.chat_id]["message_count_24h"] = row.message_count
+
+        # Fill in active user counts
+        for row in active_users_result:
+            stats[row.chat_id]["active_users_24h"] = row.active_users
+
+        # Fill in last activity
+        for row_data in last_activity_result:
+            if row_data.last_activity is not None:
+                stats[row_data.chat_id]["last_activity"] = row_data.last_activity
+
+        return stats
 
 
 def get_message_repository(db: AsyncSession) -> IMessageRepository:

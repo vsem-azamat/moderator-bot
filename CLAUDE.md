@@ -27,6 +27,7 @@ The project now includes a **React TypeScript web application** that provides an
 - **TypeScript 5.9.2** - Type-safe JavaScript development
 - **Vite 7.1.2** - Ultra-fast build tool and development server
 - **@telegram-apps/sdk-react 3.3.6** - Official Telegram WebApp integration
+- **@telegram-apps/sdk 3.11.4** - Core Telegram WebApp SDK
 - **@tanstack/react-query 5.85.3** - Powerful data fetching and caching
 - **Node.js 24** - Latest LTS runtime environment (Docker: node:24-alpine)
 
@@ -342,8 +343,10 @@ WEBAPP_URL=http://localhost:3000
 WEBAPP_API_SECRET=your_webapp_secret_key_here
 
 # Docker Configuration (for development)
-WEBAPP_PORT=3000
-ADMINER_PORT=8080
+WEBAPP_PORT=3000          # React dev server port
+API_PORT=8000             # FastAPI server port
+NGINX_PORT=80             # nginx reverse proxy port (use with ngrok)
+ADMINER_PORT=8080         # Database admin interface port
 ```
 
 ## Web Application (React Admin Panel)
@@ -393,6 +396,7 @@ The frontend is designed to provide administrators with:
 - **React 19.1.1** with TypeScript 5.9.2 - Latest React features with full type safety
 - **Vite 7.1.2** - Ultra-fast build tool and development server
 - **@telegram-apps/sdk-react 3.3.6** - Official Telegram WebApp integration
+- **@telegram-apps/sdk 3.11.4** - Core Telegram WebApp SDK
 - **@tanstack/react-query 5.85.3** - Powerful data fetching and caching
 - **Axios 1.11.0** - HTTP client for API communication
 - **Node.js 24** - Latest LTS runtime environment (Docker: node:24-alpine)
@@ -408,7 +412,8 @@ The frontend is designed to provide administrators with:
 - **Chat Management Interface** - Basic chat listing and configuration
 - **API Integration** - RESTful API for chat management operations
 - **Bulk Operations** - Support for bulk chat configuration updates
-- **Chat Statistics Framework** - Basic structure for analytics (data collection TODO)
+- **Chat Statistics Framework** - Basic structure for analytics with Telegram Stats Service
+- **Telegram Stats Service** - Cached member count and chat info collection from Telegram API
 
 ### Planned Features (Roadmap)
 - **Dashboard Analytics** - Charts and graphs for moderation statistics

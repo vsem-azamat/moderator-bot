@@ -6,14 +6,13 @@ import { chatAPI } from '../services/api';
 interface ChatCardProps {
   chat: Chat;
   isSelected: boolean;
-  onSelect: (selected: boolean) => void;
   onClick?: () => void;
 }
 
 const ChatCard: React.FC<ChatCardProps> = ({
   chat,
   isSelected,
-  onSelect,
+  // onSelect,
   onClick
 }) => {
   const [showStats, setShowStats] = useState(false);
@@ -40,11 +39,11 @@ const ChatCard: React.FC<ChatCardProps> = ({
   return (
     <div className={`chat-card ${isSelected ? 'selected' : ''}`}>
       <div className="chat-card-header">
-        <label className="chat-select">
+        <label className="chat-select" style={{ opacity: 0.5 }} title="Bulk actions temporarily disabled">
           <input
             type="checkbox"
-            checked={isSelected}
-            onChange={(e) => onSelect(e.target.checked)}
+            checked={false}
+            disabled={true}
             onClick={(e) => e.stopPropagation()}
           />
         </label>
