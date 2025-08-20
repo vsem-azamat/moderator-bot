@@ -116,6 +116,31 @@ class WebAppSettings(BaseSettings):
     )
 
 
+class AIAgentSettings(BaseSettings):
+    """AI Agent configuration."""
+
+    openai_api_key: str = Field(default="", description="OpenAI API key")
+    openrouter_api_key: str = Field(default="", description="OpenRouter API key")
+    openai_base_url: str = Field(default="", description="Custom OpenAI base URL")
+    openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1", description="OpenRouter base URL")
+
+    def has_openai_key(self) -> bool:
+        """Check if OpenAI API key is configured."""
+        return bool(self.openai_api_key and self.openai_api_key != "your_openai_api_key_here")
+
+    def has_openrouter_key(self) -> bool:
+        """Check if OpenRouter API key is configured."""
+        return bool(self.openrouter_api_key and self.openrouter_api_key != "your_openrouter_api_key_here")
+
+    model_config = SettingsConfigDict(
+        env_prefix="",  # No prefix, use direct env var names
+        case_sensitive=False,
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+
 class AppSettings(BaseSettings):
     """Main application settings."""
 
@@ -128,6 +153,7 @@ class AppSettings(BaseSettings):
     admin: AdminSettings = Field(default_factory=AdminSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     webapp: WebAppSettings = Field(default_factory=WebAppSettings)
+    ai_agent: AIAgentSettings = Field(default_factory=AIAgentSettings)
 
     model_config = SettingsConfigDict(
         env_file=".env",

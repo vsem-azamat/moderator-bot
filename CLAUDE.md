@@ -342,12 +342,53 @@ LOG_BACKUP_COUNT=5
 WEBAPP_URL=http://localhost:3000
 WEBAPP_API_SECRET=your_webapp_secret_key_here
 
+# AI Agent Configuration
+OPENAI_API_KEY=your_openai_api_key_here        # Required for OpenAI models
+OPENROUTER_API_KEY=your_openrouter_api_key_here # Required for OpenRouter models
+OPENAI_BASE_URL=                               # Optional: custom OpenAI endpoint
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1 # OpenRouter API endpoint
+
 # Docker Configuration (for development)
 WEBAPP_PORT=3000          # React dev server port
 API_PORT=8000             # FastAPI server port
 NGINX_PORT=80             # nginx reverse proxy port (use with ngrok)
 ADMINER_PORT=8080         # Database admin interface port
 ```
+
+## AI Agent Configuration
+
+### API Keys Setup
+
+The AI agent supports multiple providers. Configure the required API keys:
+
+#### OpenAI Provider
+1. Get API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Add to `.env`: `OPENAI_API_KEY=sk-your-key-here`
+3. Supports models: GPT-4o, GPT-4o Mini, GPT-4 Turbo
+
+#### OpenRouter Provider
+1. Get API key from [OpenRouter](https://openrouter.ai/keys)
+2. Add to `.env`: `OPENROUTER_API_KEY=sk-or-your-key-here`
+3. Supports models: Claude 3.5 Sonnet, Gemini Pro, Llama 3.1, Mixtral
+
+#### Environment Variables
+```bash
+# Required for OpenAI models
+OPENAI_API_KEY=sk-your-openai-key-here
+
+# Required for OpenRouter models (access to Claude, Gemini, etc.)
+OPENROUTER_API_KEY=sk-or-your-openrouter-key-here
+
+# Optional: Custom endpoints
+OPENAI_BASE_URL=https://your-custom-openai-endpoint.com
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
+
+### Usage in WebApp
+1. Open admin panel via `/webapp` command in Telegram
+2. Navigate to "Агент" tab
+3. Select AI model and provider
+4. Start chatting with AI assistant for chat management
 
 ## Web Application (React Admin Panel)
 

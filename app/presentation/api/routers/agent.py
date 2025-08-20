@@ -31,7 +31,6 @@ async def create_session(
             provider=request.agent_config.provider,
             model_id=request.agent_config.model_id,
             model_name=request.agent_config.model_name,
-            api_key_env="OPENAI_API_KEY",  # Default for now
             temperature=request.agent_config.temperature,
             max_tokens=request.agent_config.max_tokens,
         )

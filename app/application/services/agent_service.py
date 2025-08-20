@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Any
 
@@ -5,6 +6,7 @@ from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
 
 from app.application.services.agent_tools import AgentTools, ChatInfo
+from app.core.config import settings
 from app.core.logging import BotLogger
 from app.domain.agent import AgentModelConfig, AgentResponse, AgentSession, AgentToolResult, ModelProvider
 from app.domain.repositories import IAgentRepository, IChatRepository, IUserRepository
@@ -38,14 +40,37 @@ class AgentService:
     def _create_agent(self, model_config: AgentModelConfig) -> Agent[AgentContext]:
         """Создать PydanticAI агента с указанной конфигурацией модели."""
 
-        # Определяем модель в зависимости от провайдера
+        # Получаем API ключи из настроек
+        api_key = None
+        base_url = model_config.base_url
+
         if model_config.provider == ModelProvider.OPENAI:
+            if not settings.ai_agent.has_openai_key():
+                raise ValueError(
+                    "OPENAI_API_KEY не настроен в переменных окружения. Получите ключ на https://platform.openai.com/api-keys"
+                )
+            api_key = settings.ai_agent.openai_api_key
+            if not base_url and settings.ai_agent.openai_base_url:
+                base_url = settings.ai_agent.openai_base_url
             model = model_config.model_id
         elif model_config.provider == ModelProvider.OPENROUTER:
+            if not settings.ai_agent.has_openrouter_key():
+                raise ValueError(
+                    "OPENROUTER_API_KEY не настроен в переменных окружения. Получите ключ на https://openrouter.ai/keys"
+                )
+            api_key = settings.ai_agent.openrouter_api_key
+            if not base_url:
+                base_url = settings.ai_agent.openrouter_base_url
             # OpenRouter использует OpenAI-совместимый API
             model = f"openai:{model_config.model_id}"
         else:
             raise ValueError(f"Неподдерживаемый провайдер: {model_config.provider}")
+
+        # Устанавливаем переменные окружения для pydantic-ai
+        if model_config.provider == ModelProvider.OPENAI or model_config.provider == ModelProvider.OPENROUTER:
+            os.environ["OPENAI_API_KEY"] = api_key
+            if base_url:
+                os.environ["OPENAI_BASE_URL"] = base_url
 
         # Системный промпт для управления чатами
         system_prompt = """

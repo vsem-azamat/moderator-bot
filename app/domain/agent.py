@@ -27,7 +27,7 @@ class AgentModelConfig(BaseModel):
     provider: ModelProvider
     model_id: str
     model_name: str | None = None
-    api_key_env: str
+    api_key: str | None = None  # API key will be injected at runtime
     base_url: str | None = None
     max_tokens: int | None = None
     temperature: float = 0.7
