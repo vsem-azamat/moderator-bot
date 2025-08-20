@@ -49,6 +49,7 @@ class ChatEntity:
     welcome_delete_time: int = 60
     is_welcome_enabled: bool = False
     is_captcha_enabled: bool = False
+    auto_delete_join_leave: bool = False
     created_at: datetime | None = None
     modified_at: datetime | None = None
 
@@ -75,6 +76,14 @@ class ChatEntity:
     def disable_captcha(self) -> None:
         """Disable captcha for new members."""
         self.is_captcha_enabled = False
+
+    def enable_auto_delete_join_leave(self) -> None:
+        """Enable auto-deletion of join/leave messages."""
+        self.auto_delete_join_leave = True
+
+    def disable_auto_delete_join_leave(self) -> None:
+        """Disable auto-deletion of join/leave messages."""
+        self.auto_delete_join_leave = False
 
 
 @dataclass

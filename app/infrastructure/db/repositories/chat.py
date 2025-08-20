@@ -39,6 +39,7 @@ class ChatRepository(IChatRepository):
             chat_model.time_delete = chat.welcome_delete_time
             chat_model.is_welcome_enabled = chat.is_welcome_enabled
             chat_model.is_captcha_enabled = chat.is_captcha_enabled
+            chat_model.auto_delete_join_leave = chat.auto_delete_join_leave
         else:
             chat_model = Chat(
                 id=chat.id,
@@ -48,6 +49,7 @@ class ChatRepository(IChatRepository):
                 time_delete=chat.welcome_delete_time,
                 is_welcome_enabled=chat.is_welcome_enabled,
                 is_captcha_enabled=chat.is_captcha_enabled,
+                auto_delete_join_leave=chat.auto_delete_join_leave,
             )
             self.db.add(chat_model)
 
@@ -70,6 +72,7 @@ class ChatRepository(IChatRepository):
             welcome_delete_time=chat_model.time_delete,
             is_welcome_enabled=chat_model.is_welcome_enabled,
             is_captcha_enabled=chat_model.is_captcha_enabled,
+            auto_delete_join_leave=chat_model.auto_delete_join_leave,
             created_at=chat_model.created_at,
             modified_at=chat_model.modified_at,
         )

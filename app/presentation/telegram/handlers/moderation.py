@@ -260,6 +260,29 @@ async def welcome_change(message: types.Message, chat_repo: ChatRepository) -> N
     await message.delete()
 
 
+@moderation_router.message(Command("autodelete_joinleave", prefix="!/"))
+async def toggle_autodelete_joinleave(message: types.Message, chat_repo: ChatRepository) -> None:
+    """Toggle auto-deletion of join/leave messages."""
+    chat = await chat_repo.get_chat(message.chat.id)
+
+    if not chat:
+        # Create chat entry if it doesn't exist
+        from app.domain.models import Chat
+
+        chat = Chat(id=message.chat.id, title=message.chat.title)
+        chat_repo.db.add(chat)
+        await chat_repo.db.commit()
+        await chat_repo.db.refresh(chat)
+
+    # Toggle the setting
+    chat.auto_delete_join_leave = not chat.auto_delete_join_leave
+    await chat_repo.db.commit()
+
+    status = "включено" if chat.auto_delete_join_leave else "выключено"
+    await message.answer(f"<b>Автоудаление сообщений о входе/выходе {status}!</b>")
+    await message.delete()
+
+
 @moderation_router.callback_query(BlacklistConfirm.filter())
 async def process_blacklist_confirm(
     callback: types.CallbackQuery,

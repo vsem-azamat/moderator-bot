@@ -41,6 +41,7 @@ class Chat(Base):
     time_delete: Mapped[int] = mapped_column(Integer, default=60)
     is_welcome_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     is_captcha_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    auto_delete_join_leave: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.now)
     modified_at: Mapped[datetime.datetime] = mapped_column(
         DateTime, default=datetime.datetime.now, onupdate=datetime.datetime.now
@@ -55,6 +56,7 @@ class Chat(Base):
         time_delete: int = 60,
         is_welcome_enabled: bool = False,
         is_captcha_enabled: bool = False,
+        auto_delete_join_leave: bool = False,
     ) -> None:
         self.id = id
         self.title = title
@@ -63,6 +65,7 @@ class Chat(Base):
         self.time_delete = time_delete
         self.is_welcome_enabled = is_welcome_enabled
         self.is_captcha_enabled = is_captcha_enabled
+        self.auto_delete_join_leave = auto_delete_join_leave
 
     def enable_welcome(self, message: str | None = None) -> None:
         """Enable welcome message for new members"""
@@ -92,6 +95,14 @@ class Chat(Base):
     def disable_captcha(self) -> None:
         """Disable captcha"""
         self.is_captcha_enabled = False
+
+    def enable_auto_delete_join_leave(self) -> None:
+        """Enable auto-deletion of join/leave messages"""
+        self.auto_delete_join_leave = True
+
+    def disable_auto_delete_join_leave(self) -> None:
+        """Disable auto-deletion of join/leave messages"""
+        self.auto_delete_join_leave = False
 
 
 class User(Base):
