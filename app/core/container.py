@@ -5,14 +5,18 @@ from typing import Any, TypeVar
 from aiogram import Bot
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.application.services.agent_service import AgentService
+from app.core.logging import BotLogger
 from app.domain.repositories import (
     IAdminRepository,
+    IAgentRepository,
     IChatLinkRepository,
     IChatRepository,
     IMessageRepository,
     IUserRepository,
 )
 from app.infrastructure.db.repositories.admin import AdminRepository
+from app.infrastructure.db.repositories.agent import InMemoryAgentRepository
 from app.infrastructure.db.repositories.chat import ChatRepository
 from app.infrastructure.db.repositories.chat_link import ChatLinkRepository
 from app.infrastructure.db.repositories.message import MessageRepository
@@ -91,9 +95,27 @@ class Container:
         """Get chat link repository."""
         return ChatLinkRepository(session)
 
+    def get_agent_repository(self) -> IAgentRepository:
+        """Get agent repository."""
+        return InMemoryAgentRepository()
+
+    def get_agent_service(self) -> AgentService:
+        """Get agent service."""
+        session = self.get_session()
+        agent_repo = self.get_agent_repository()
+        chat_repo = self.get_chat_repository(session)
+        user_repo = self.get_user_repository(session)
+        logger = BotLogger("AgentService")
+        return AgentService(agent_repo, chat_repo, user_repo, logger)
+
 
 # Global container instance
 container = Container()
+
+
+def get_container() -> Container:
+    """Get the global container instance."""
+    return container
 
 
 def setup_container(session_maker: async_sessionmaker[AsyncSession], bot: Bot) -> None:
@@ -109,3 +131,5 @@ def setup_container(session_maker: async_sessionmaker[AsyncSession], bot: Bot) -
     container.register_transient(
         IChatLinkRepository, lambda: container.get_chat_link_repository(container.get_session())
     )
+    container.register_singleton(IAgentRepository, container.get_agent_repository())
+    container.register_transient(AgentService, lambda: container.get_agent_service())

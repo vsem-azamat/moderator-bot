@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from app.core.config import settings
-from app.presentation.api.routers import chats
+from app.presentation.api.routers import agent, chats
 
 app = FastAPI(
     title="Moderator Bot API",
@@ -42,6 +42,7 @@ async def force_https_redirect(request: Request, call_next: Callable[[Request], 
 
 # Include routers
 app.include_router(chats.router, prefix="/api/v1/chats", tags=["chats"])
+app.include_router(agent.router, prefix="/api/v1", tags=["agent"])
 
 
 @app.get("/api/health")

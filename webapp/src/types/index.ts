@@ -74,3 +74,56 @@ export interface ChatStats {
   averageMembers: number
   chatsByType: Record<string, number>
 }
+
+export type ModelProvider = 'openai' | 'openrouter'
+
+export interface ModelConfig {
+  provider: ModelProvider
+  model_id: string
+  model_name?: string
+  temperature: number
+  max_tokens?: number
+}
+
+export interface AgentModel {
+  id: string
+  name: string
+  description?: string
+  context_length?: number
+  provider: ModelProvider
+}
+
+export interface AgentSession {
+  id: string
+  title?: string
+  model_config: ModelConfig
+  created_at: string
+  updated_at: string
+  is_active: boolean
+  message_count: number
+}
+
+export interface AgentMessage {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp: string
+}
+
+export interface ChatRequest {
+  message: string
+}
+
+export interface ChatResponse {
+  session_id: string
+  message: string
+  model_used: string
+  tokens_used?: number
+  execution_time?: number
+  timestamp: string
+}
+
+export interface CreateSessionRequest {
+  model_config: ModelConfig
+  title?: string
+}

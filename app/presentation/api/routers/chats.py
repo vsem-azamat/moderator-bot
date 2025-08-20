@@ -1,5 +1,7 @@
 """Chat management API endpoints."""
 
+from typing import Any
+
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from fastapi import APIRouter, Depends, HTTPException
@@ -7,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.services.telegram_stats import TelegramStatsService
 from app.core.config import settings
+from app.infrastructure.db.repositories.admin import AdminRepository
 from app.infrastructure.db.repositories.chat import ChatRepository
 from app.infrastructure.db.repositories.message import MessageRepository
 from app.infrastructure.db.session import get_db_session
@@ -23,6 +26,24 @@ async def get_chat_repository(db: AsyncSession = Depends(get_db_session)) -> Cha
 async def get_message_repository(db: AsyncSession = Depends(get_db_session)) -> MessageRepository:
     """Get message repository dependency."""
     return MessageRepository(db)
+
+
+async def get_admin_repository(db: AsyncSession = Depends(get_db_session)) -> AdminRepository:
+    """Get admin repository dependency."""
+    return AdminRepository(db)
+
+
+async def get_current_admin_user(_: AdminRepository = Depends(get_admin_repository)) -> dict[str, Any]:
+    """
+    Get current admin user. For now returns a mock admin user.
+    In production, this should validate JWT token from Telegram WebApp.
+    """
+    # TODO: Implement proper Telegram WebApp authentication
+    # For now, return the first super admin as mock user
+    if settings.admin.super_admins:
+        admin_id = settings.admin.super_admins[0]
+        return {"id": admin_id, "is_super_admin": True}
+    raise HTTPException(status_code=401, detail="No authenticated admin user")
 
 
 # Bot instance for API (singleton)

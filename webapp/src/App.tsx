@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLaunchParams, useRawInitData } from '@telegram-apps/sdk-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import BulkChatManager from './components/BulkChatManager'
+import { AgentManager } from './components/AgentManager'
 import './App.css'
 
 const queryClient = new QueryClient()
@@ -41,7 +42,7 @@ function App() {
     buttonColor?: string
     buttonTextColor?: string
   } | null>(null)
-  const [activeTab, setActiveTab] = useState<'bulk' | 'analytics' | 'settings' | 'debug'>('bulk')
+  const [activeTab, setActiveTab] = useState<'bulk' | 'agent' | 'analytics' | 'settings' | 'debug'>('bulk')
 
   useEffect(() => {
     // Parse raw init data
@@ -108,6 +109,12 @@ function App() {
               🎯 Массовые операции
             </button>
             <button
+              className={`nav-btn ${activeTab === 'agent' ? 'active' : ''}`}
+              onClick={() => setActiveTab('agent')}
+            >
+              🤖 AI Агент
+            </button>
+            <button
               className={`nav-btn ${activeTab === 'analytics' ? 'active' : ''}`}
               onClick={() => setActiveTab('analytics')}
             >
@@ -129,6 +136,8 @@ function App() {
 
           <main className="tab-content">
             {activeTab === 'bulk' && <BulkChatManager />}
+
+            {activeTab === 'agent' && <AgentManager />}
 
             {activeTab === 'analytics' && (
               <div className="placeholder-tab">
